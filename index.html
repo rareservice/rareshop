@@ -254,8 +254,6 @@
                 <div class="flex items-center space-x-4">
                     <a href="dash.html" id="admin-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium hidden">Admin Dashboard</a>
                     
-                    <!-- REMOVED: Notification Icon and Popover -->
-                    
                     <a href="#" id="cart-link" class="relative text-gray-600 hover:text-orange-600">
                         <i class="ph ph-shopping-cart text-3xl"></i>
                         <span id="cart-item-count" class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-orange-600 text-white text-xs font-bold rounded-full">0</span>
@@ -514,21 +512,21 @@
                                      class="payment-logo" 
                                      data-method="easypaisa"
                                      data-heading="Easypaisa"
-                                     data-instructions="1: Send payment to 03141550827\naccount name &quot; Farhana Imam &quot;"
+                                     data-instructions="1: Send payment to 03141550827\n2: Account name Farhana Imam"
                                 >
                                 <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762354552/2068807-nayapay-1569836083_n4dt2g.jpg" 
                                      alt="NayaPay" 
                                      class="payment-logo" 
                                      data-method="nayapay"
                                      data-heading="NayaPay"
-                                     data-instructions="1: send payment to 03409796147\naccount name Nisar Ud Din"
+                                     data-instructions="1: Send payment to 03409796147\n2: Account name Nisar Ud Din"
                                 >
                                 <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762354668/unnamed_e9pkpn.webp" 
                                      alt="Digitt+" 
                                      class="payment-logo" 
                                      data-method="digittplus"
                                      data-heading="Digitt+"
-                                     data-instructions="1: must send payment to 03349284416\naccount name &quot; Shukriya BIBI &quot;"
+                                     data-instructions="1: Send payment to 03349284416\n2: Account name Shukriya BIBI"
                                 >
                             </div>
 
@@ -1241,7 +1239,8 @@
             setLogLevel, 
             setDoc, 
             updateDoc, 
-            deleteDoc 
+            deleteDoc,
+            runTransaction // NEW: Import for safe stock decrement
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- Use Environment Variables for Config ---
@@ -1434,11 +1433,12 @@
 
         /**
          * Adds or updates a product in the cart.
-         * @param {object} product - The product data to add.
+         * * @param {object} product - The product data to add.
          * @param {number} change - Quantity change (+1 or -1).
          * @param {boolean} immediateCheckout - If true, navigates to checkout after successful update.
+         * @param {boolean} [showModalOnSuccess=true] - NEW: If true, shows the "Item Added" modal.
          */
-        async function updateCart(product, change, immediateCheckout = false) {
+        async function updateCart(product, change, immediateCheckout = false, showModalOnSuccess = true) {
             // UPDATED: Require user to be logged in
             if (!loggedInUser || !loggedInUser.email) {
                 showModal("Login Required", "Please log in or sign up to add items to your cart.");
@@ -1448,8 +1448,15 @@
             
             const currentUid = loggedInUser.uid;
 
+            // NEW: Stock Check Logic
+            const currentStock = product.stock || 0;
             const existingItem = cartItems[product.id] || { quantity: 0 };
             const newQuantity = Math.max(0, existingItem.quantity + change);
+            
+            if (newQuantity > currentStock) {
+                 showModal("Out of Stock", `The requested quantity of ${newQuantity} for ${product.name} is not available. Only ${currentStock} units are in stock.`);
+                 return;
+            }
             
             // Use the effective price for cart calculation
             const effectivePrice = getEffectivePrice(product);
@@ -1467,7 +1474,13 @@
                         addedAt: new Date(),
                     }, { merge: true });
                     
-                    showModal("Item Added", `${product.name} quantity updated to ${newQuantity} in cart.`);
+                    // --- FIX: Introduce a small delay to prevent race condition with onSnapshot listener ---
+                    await new Promise(resolve => setTimeout(resolve, 50));
+
+                    // Only show modal if requested (i.e., not when using +/- buttons in cart view)
+                    if (showModalOnSuccess) {
+                        showModal("Item Added", `${product.name} quantity updated to ${newQuantity} in cart.`);
+                    }
                 } else {
                     await deleteDoc(itemRef);
                     showModal("Item Removed", `${product.name} removed from cart.`);
@@ -1563,9 +1576,19 @@
                     btn.addEventListener('click', async (e) => {
                         const productId = e.currentTarget.getAttribute('data-id');
                         const action = e.currentTarget.getAttribute('data-action');
-                        const product = cartItems[productId];
+                        const productData = cartItems[productId];
                         
-                        if (!product) return;
+                        if (!productData) return;
+                        
+                        // NEW: Get the *latest* product data before cart operation for stock check
+                        const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
+                        const productSnap = await getDoc(productRef);
+                        
+                        if (!productSnap.exists()) {
+                            showModal("Error", "Product not found. Cannot modify cart item.");
+                            return;
+                        }
+                        const product = { id: productSnap.id, ...productSnap.data() };
                         
                         let change = 0;
                         if (action === 'increase') {
@@ -1573,17 +1596,15 @@
                         } else if (action === 'decrease') {
                             change = -1;
                         } else if (action === 'remove') {
-                            change = -product.quantity; // Remove all
+                            change = -productData.quantity; // Remove all
                         }
                         
-                        // We need the full product details (name, image, etc.) for the updateCart function,
-                        // but since cart listener refreshes the view, we just need the ID and change here.
-                        // However, updateCart expects the full product object to update name/image/price 
-                        // in case it's an initial add. Since this is an existing item, we can pass the
-                        // cart item itself, though technically we should fetch the original product 
-                        // for the most current data if we were to re-save all metadata. 
-                        // For simplicity, we use the cart item's stored metadata for update.
-                        await updateCart(product, change);
+                        // Use false for showModalOnSuccess when manipulating quantity directly in cart
+                        await updateCart(product, change, false, false); 
+                        
+                        // Manually trigger re-render of the cart view to update summary totals
+                        // This prevents the visual lag while waiting for the Firestore listener
+                        renderCartView(false); 
                     });
                 });
 
@@ -1602,6 +1623,11 @@
 
             // Attach "Proceed to Checkout" listener
             proceedBtn.addEventListener('click', showCheckoutView);
+            
+            // Re-listen to cart if not already, to catch external changes
+            if (clearFirst && loggedInUser && loggedInUser.uid) {
+                listenToCart();
+            }
         }
 
         /**
@@ -1759,7 +1785,7 @@
             // Initial button state check
             updateBuyNowButtonState();
 
-            // --- Form Submission (Final Step with Storage Upload) ---
+            // --- Form Submission (Final Step with Stock Decrement) ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -1776,44 +1802,88 @@
                     return;
                 }
                 
+                const cartItemsArray = Object.values(cartItems);
+                if (cartItemsArray.length === 0) {
+                     showModal("Cart Empty", "Your cart is empty. Please add items before checking out.");
+                     return;
+                }
+                
                 // Disable button and show loading state
                 buyNowBtn.disabled = true;
                 buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Initializing Order...';
 
-                // Generate a unique ID for the order document before uploading the file
+                // Generate a unique ID for the order document before processing
                 const ordersCollectionPath = `artifacts/${appId}/public/data/orders`;
                 const newOrderRef = doc(collection(db, ordersCollectionPath));
-                const orderId = newOrderRef.id;
-
+                
                 try {
-                    // 1. Prepare Order Data
-                    buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Placing Order...';
-                    const orderData = {
-                        userId: loggedInUser.uid, // FIX: Ensure we use the authenticated UID
-                        items: Object.values(cartItems).map(item => ({...item, addedAt: null})), 
-                        total: Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0),
-                        contact: form.elements['contact-email'].value,
-                        shipping: {
-                            firstName: form.elements['shipping-first-name'].value,
-                            lastName: form.elements['shipping-last-name'].value,
-                            address: form.elements['shipping-address'].value,
-                            apartment: form.elements['shipping-apartment'].value,
-                            city: form.elements['shipping-city'].value,
-                            postalCode: form.elements['shipping-postal-code'].value,
-                            phone: form.elements['shipping-phone'].value,
-                            country: form.elements['shipping-country'].value,
-                        },
-                        paymentMethod: selectedPaymentMethod,
-                        status: 'Pending Verification',
-                        orderDate: new Date(),
-                    };
+                    // --- NEW: Atomic Stock Decrement via Transaction ---
+                    buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Checking Stock...';
 
-                    // 2. Save order to the PUBLIC 'orders' collection
-                    await setDoc(newOrderRef, orderData); 
+                    await runTransaction(db, async (transaction) => {
+                        const productUpdates = [];
+                        
+                        // 1. Check stock for every item and prepare the update
+                        for (const item of cartItemsArray) {
+                            const productRef = doc(db, PRODUCTS_COLLECTION_PATH, item.productId);
+                            const productSnap = await transaction.get(productRef);
+                            
+                            if (!productSnap.exists()) {
+                                throw new Error(`Product ${item.name} not found.`);
+                            }
+                            
+                            const currentStock = productSnap.data().stock || 0;
+                            const neededQuantity = item.quantity;
+                            const newStock = currentStock - neededQuantity;
+                            
+                            if (newStock < 0) {
+                                throw new Error(`Insufficient stock for ${item.name}. Only ${currentStock} available.`);
+                            }
+                            
+                            // Collect the update
+                            productUpdates.push({
+                                ref: productRef,
+                                newStock: newStock,
+                                availability: newStock > 0 ? 'In Stock' : 'Out of Stock'
+                            });
+                        }
+                        
+                        // 2. All stock is available - perform the stock updates in the transaction
+                        productUpdates.forEach(update => {
+                            transaction.update(update.ref, { 
+                                stock: update.newStock,
+                                'details.availability': update.availability
+                            });
+                        });
+                        
+                        // 3. Place the order
+                        buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Placing Order...';
+                        const orderData = {
+                            userId: loggedInUser.uid,
+                            items: cartItemsArray.map(item => ({...item, addedAt: null})), 
+                            total: cartItemsArray.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                            contact: form.elements['contact-email'].value,
+                            shipping: {
+                                firstName: form.elements['shipping-first-name'].value,
+                                lastName: form.elements['shipping-last-name'].value,
+                                address: form.elements['shipping-address'].value,
+                                apartment: form.elements['shipping-apartment'].value,
+                                city: form.elements['shipping-city'].value,
+                                postalCode: form.elements['shipping-postal-code'].value,
+                                phone: form.elements['shipping-phone'].value,
+                                country: form.elements['shipping-country'].value,
+                            },
+                            paymentMethod: selectedPaymentMethod,
+                            status: 'Pending Verification',
+                            orderDate: new Date(),
+                        };
+                        transaction.set(newOrderRef, orderData); 
+                    });
                     
-                    // REMOVED: Send initial notification 
+                    // --- End Transaction ---
 
-                    // 3. Clear the cart
+                    // 4. Clear the cart AFTER successful transaction
+                    buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Clearing Cart...';
                     const cartRefs = await getDocs(collection(db, CART_COLLECTION_PATH(loggedInUser.uid)));
                     const deletePromises = [];
                     cartRefs.forEach(doc => {
@@ -1821,16 +1891,21 @@
                     });
                     await Promise.all(deletePromises);
                     
-                    // 4. Success message and redirect
+                    // 5. Success message and redirect
                     showModal("Order Placed!", "Your order has been placed and is pending verification. Please send your payment screenshot to our WhatsApp number.");
                     renderHomeView(); // Go back to the home page
 
                 } catch (error) {
-                    console.error("Error placing order:", error);
+                    console.error("Error placing order/stock update:", error);
                     let displayMessage = `Failed to place order: ${error.message}.`;
-                    if (error.message.includes('permission-denied')) {
-                        displayMessage = "Failed to save order due to security rules or network issues. Please ensure you are logged in and your user ID matches the cart ID.";
+                    
+                    // Check for stock error message from the transaction
+                    if (error.message.includes('Insufficient stock')) {
+                         displayMessage = error.message;
+                    } else if (error.message.includes('permission-denied')) {
+                        displayMessage = "Failed to save order due to security rules or network issues. Please ensure you are logged in.";
                     }
+                    
                     // Re-enable button and display error message
                     showModal("Order Error", displayMessage);
                     buyNowBtn.disabled = false;
@@ -2423,6 +2498,9 @@
                 // NEW: Check for active sale
                 const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
                 const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
+                
+                // NEW: Check for stock
+                const isOutOfStock = (product.stock || 0) <= 0;
 
                 let priceHtml;
                 if (isSaleActive) {
@@ -2435,6 +2513,10 @@
                     `;
                 } else {
                     priceHtml = `<p class="text-base sm:text-lg font-bold text-orange-600">${CURRENCY_SYMBOL}${originalPrice}</p>`;
+                }
+                
+                if (isOutOfStock) {
+                     priceHtml = `<p class="text-base sm:text-lg font-bold text-red-600">Out of Stock</p>`;
                 }
                 // --- End Price Logic ---
 
@@ -2610,7 +2692,7 @@
             
             specsHtml += createSpecHeader("Features & Connectivity");
             specsHtml += createSpecRow("Color", feat.color);
-            specsHtml += createSpecRow("RAM (Form)", feat.ram);
+            specsHtml += createSpecRow("RAM (Form)", feat.ram); 
             specsHtml += createSpecRow("Fingerprint Reader", feat.fingerprint);
             specsHtml += createSpecRow("Numeric Keyboard", feat.numKeyboard);
             specsHtml += createSpecRow("Backlit Keyboard", feat.backlitKeyboard);
@@ -2628,6 +2710,10 @@
             // NEW: Check for active sale
             const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
             const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
+            
+            // NEW: Stock Check
+            const currentStock = product.stock || 0;
+            const isOutOfStock = currentStock <= 0;
 
             let priceDisplayHtml;
             if (isSaleActive) {
@@ -2693,7 +2779,9 @@
                                 ${priceDisplayHtml}
                             </div>
                             <span class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">${product.category}</span>
-                            <span class="font-bold ${details.availability === 'In Stock' ? 'text-green-600' : 'text-red-600'}">${details.availability || 'Out of Stock'}</span>
+                            <span class="font-bold ${isOutOfStock ? 'text-red-600' : 'text-green-600'}">
+                                ${isOutOfStock ? 'Out of Stock' : `In Stock (${currentStock} left)`}
+                            </span>
                         </div>
 
                         <h3 class="text-xl font-semibold text-gray-800 mb-3 border-b pb-2">Specifications</h3>
@@ -2705,12 +2793,16 @@
                     <div class="mt-8 space-y-3">
                         <button id="add-to-cart-btn" 
                                 data-product-id="${product.id}"
-                                class="w-full py-3 bg-orange-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-orange-700 transition-colors flex items-center justify-center">
-                            <i class="ph ph-shopping-cart text-xl mr-2"></i> Add to Cart
+                                data-product-name="${product.name}"
+                                class="w-full py-3 bg-orange-600 text-white text-lg font-semibold rounded-lg shadow-md hover:bg-orange-700 transition-colors flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                ${isOutOfStock ? 'disabled' : ''}>
+                            <i class="ph ph-shopping-cart text-xl mr-2"></i> ${isOutOfStock ? 'Out of Stock' : 'Add to Cart'}
                         </button>
                         <button id="buy-now-btn" 
                                 data-product-id="${product.id}"
-                                class="w-full py-3 bg-white text-orange-600 border-2 border-orange-600 text-lg font-semibold rounded-lg shadow-md hover:bg-orange-50 transition-colors flex items-center justify-center">
+                                data-product-name="${product.name}"
+                                class="w-full py-3 bg-white text-orange-600 border-2 border-orange-600 text-lg font-semibold rounded-lg shadow-md hover:bg-orange-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                ${isOutOfStock ? 'disabled' : ''}>
                             Buy Now
                         </button>
                     </div>
@@ -2719,28 +2811,38 @@
             
             // --- NEW: Attach Cart/Buy Now Listeners ---
             document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
+                // Pre-check stock again to handle fast user clicks
+                if (isOutOfStock) return; 
+                
                 const productId = e.currentTarget.getAttribute('data-product-id');
                 const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
                 const productSnap = await getDoc(productRef);
+                
                 if (productSnap.exists()) {
-                    await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false);
+                    // Pass the *full* product data, including the stock
+                    await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false, true);
                 } else {
                     showModal("Error", "Product data missing for cart operation.");
                 }
             });
 
             document.getElementById('buy-now-btn').addEventListener('click', async (e) => {
+                 // Pre-check stock again to handle fast user clicks
+                if (isOutOfStock) return;
+                
                 const productId = e.currentTarget.getAttribute('data-product-id');
                 const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
                 const productSnap = await getDoc(productRef);
+                
                 if (productSnap.exists()) {
                     // 1. Add item to cart (or update quantity)
-                    await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false);
+                    // Pass the *full* product data, including the stock
+                    await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false, false);
                     
                     // 2. Clear current cart listeners (except the main header listener)
                     clearListeners();
                     
-                    // 3. Navigate to checkout
+                    // 3. Navigate to checkout (this handles the next snapshot processing after cart update)
                     showCheckoutView(); 
 
                 } else {
@@ -2981,7 +3083,7 @@
 
             } catch (error) {
                 let message = "An unknown error occurred during login.";
-                if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                if (error.code === 'auth/invalid-email' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     message = "Invalid email or password.";
                 } else if (error.code === 'auth/too-many-requests') {
                     message = "Access temporarily blocked due to too many failed attempts. Try again later.";
