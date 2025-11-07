@@ -1,9 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1JXBVGTYY7"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+    
+      gtag('config', 'G-1JXBVGTYY7');
+    </script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RareShop - Laptops, Phones, TVs & More</title>
+...
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -1190,15 +1200,7 @@
                     <button type="submit" id="login-submit-btn" class="w-full py-2.5 bg-orange-600 text-white font-semibold rounded-lg shadow-md hover:bg-orange-700 transition-colors disabled:opacity-50">
                         Sign In
                     </button>
-                    <div class="flex items-center space-x-2 py-2">
-                        <hr class="flex-1 border-t border-gray-300">
-                        <span class="text-sm text-gray-500">OR</span>
-                        <hr class="flex-1 border-t border-gray-300">
-                    </div>
-                    <button type="button" id="google-login-btn" class="w-full py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center">
-                        <i class="ph ph-google-logo text-xl mr-2"></i> Continue with Google
-                    </button>
-                    </form>
+                </form>
             </div>
             
             <div id="signup-form-content" class="hidden">
@@ -1215,15 +1217,7 @@
                     <button type="submit" id="signup-submit-btn" class="w-full py-2.5 bg-gray-900 text-white font-semibold rounded-lg shadow-md hover:bg-black transition-colors disabled:opacity-50">
                         Create Account
                     </button>
-                    <div class="flex items-center space-x-2 py-2">
-                        <hr class="flex-1 border-t border-gray-300">
-                        <span class="text-sm text-gray-500">OR</span>
-                        <hr class="flex-1 border-t border-gray-300">
-                    </div>
-                    <button type="button" id="google-signup-btn" class="w-full py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors flex items-center justify-center">
-                        <i class="ph ph-google-logo text-xl mr-2"></i> Continue with Google
-                    </button>
-                    </form>
+                </form>
             </div>
         </div>
     </div>
@@ -1237,13 +1231,9 @@
             signInAnonymously, 
             signInWithCustomToken, 
             onAuthStateChanged,
-            createUserWithEmailAndPassword, 
-            signInWithEmailAndPassword,     
-            signOut,
-            // --- NEW IMPORTS FOR GOOGLE AUTH ---
-            GoogleAuthProvider, 
-            signInWithPopup 
-            // --- END NEW IMPORTS FOR GOOGLE AUTH ---
+            createUserWithEmailAndPassword, // NEW
+            signInWithEmailAndPassword,     // NEW
+            signOut                         // NEW
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // Import Firestore modules
@@ -3047,47 +3037,6 @@
         // --- Auth Modal and Firebase Auth Handlers (NEW) ---
         
         /**
-         * Handles Google Sign-In using a pop-up window.
-         */
-        async function handleGoogleLogin() {
-            const provider = new GoogleAuthProvider();
-            const loginBtn = document.getElementById('google-login-btn') || document.getElementById('google-signup-btn');
-            
-            // Disable button and show loading state
-            if (loginBtn) {
-                loginBtn.disabled = true;
-                loginBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Connecting...';
-            }
-
-            try {
-                // This handles both signing in existing users and signing up new users.
-                const result = await signInWithPopup(auth, provider);
-                
-                // User signed in successfully
-                hideAuthModal();
-                showModal("Welcome!", `Signed in as ${result.user.displayName || result.user.email}.`);
-                
-            } catch (error) {
-                // Close modal on error
-                if (error.code === 'auth/popup-closed-by-user') {
-                    // Do nothing, just re-enable button
-                } else if (error.code === 'auth/unauthorized-domain') {
-                    // The user's domain is: https://rareservices.store/
-                    showModal("Configuration Error", "Authentication failed: Your website domain (rareservices.store) needs to be added to the Firebase Authorized Domains list in the Firebase Console (Auth > Settings).");
-                } else {
-                    console.error("Google Auth Error:", error);
-                    showModal("Login Failed", `Google login failed: ${error.message}.`);
-                }
-            } finally {
-                // Re-enable button
-                if (loginBtn) {
-                    loginBtn.disabled = false;
-                    loginBtn.innerHTML = '<i class="ph ph-google-logo text-xl mr-2"></i> Continue with Google';
-                }
-            }
-        }
-
-        /**
          * Shows the Auth modal with the specified active tab.
          * @param {string} tab - 'login' or 'signup'
          */
@@ -3320,16 +3269,6 @@
                     const password = signupForm.elements['signup-password'].value;
                     handleSignUp(email, password);
                 });
-                
-                // --- NEW GOOGLE LOGIN LISTENERS ---
-                // We use document.addEventListener to handle elements that appear inside a hidden modal
-                document.addEventListener('click', (e) => {
-                    if (e.target.id === 'google-login-btn' || e.target.id === 'google-signup-btn') {
-                        handleGoogleLogin();
-                    }
-                });
-                // --- END NEW GOOGLE LOGIN LISTENERS ---
-
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
