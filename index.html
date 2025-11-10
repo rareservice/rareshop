@@ -14,15 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RareShop - Laptops, Phones, TVs & More</title>
 
-    <!-- 
-      NEW: Added your website's logo (favicon) here.
-    -->
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762613482/ChatGPT_Image_Nov_8_2025_07_51_53_PM_lorjo6.png">
     <link rel="apple-touch-icon" href="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762613482/ChatGPT_Image_Nov_8_2025_07_51_53_PM_lorjo6.png">
-    <!-- 
-      End of new logo section
-    -->
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
@@ -79,7 +72,6 @@
             text-decoration: line-through;
             color: #9ca3af; /* gray-400 */
             font-size: 0.875rem; /* text-sm */
-            /* Removed margin-right to allow stacking */
         }
         .discount-price {
             font-weight: 700;
@@ -107,8 +99,6 @@
             width: 100%;
             display: block;
             object-fit: cover;
-            /* You might need to adjust aspect-ratio for your specific images */
-            /* e.g., aspect-ratio: 16 / 9; or a fixed height */
             aspect-ratio: 3 / 1; /* Example: 3:1 aspect ratio */
             background-color: #e5e7eb; /* bg-gray-200 */
         }
@@ -177,7 +167,7 @@
         }
         /* --- END Sale Timer Styles --- */
 
-        /* --- Checkout Form Styles (from video/screenshot) --- */
+        /* --- Checkout Form Styles --- */
         .form-input {
             appearance: none;
             background-color: #f9fafb; /* gray-50 / light gray */
@@ -246,22 +236,94 @@
             border-color: #ea580c; /* orange-600 */
             color: #111827; /* gray-900 */
         }
+
+        /* Sidebar Custom Styles (NEW) */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 80%; 
+            max-width: 300px; 
+            z-index: 60; 
+            transform: translateX(-100%); 
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar.open {
+            transform: translateX(0); 
+        }
+
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 55;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; 
+        }
+
+        .backdrop.open {
+            opacity: 1;
+            pointer-events: auto; 
+        }
     </style>
 </head>
 <body class="bg-white">
 
-    <header class="border-b border-gray-200 bg-white sticky top-0 z-50">
+    <div id="sidebar-backdrop" class="backdrop hidden"></div>
+
+    <div id="mobile-sidebar" class="sidebar bg-white shadow-xl p-4 dark:bg-gray-900">
+        <div class="flex justify-end mb-6">
+            <button id="sidebar-close-btn" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                <i class="ph ph-x text-2xl"></i>
+            </button>
+        </div>
+        
+        <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 dark:text-white dark:border-gray-700">Customer Menu</h3>
+        
+        <nav class="space-y-4">
+            <a href="#" id="sidebar-track-order-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
+                <i class="ph ph-package text-2xl mr-3"></i>
+                Track Order
+            </a>
+            <a href="#" id="sidebar-wishlist-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
+                <i class="ph ph-heart text-2xl mr-3"></i>
+                WhishList
+            </a>
+            <button id="sidebar-theme-toggle-btn" title="Toggle theme" class="w-full flex items-center justify-start text-lg font-medium text-gray-700 hover:text-orange-600 p-0 dark:text-gray-300 dark:hover:text-orange-500">
+                <i class="ph ph-circle-half text-2xl mr-3"></i>
+                Dark / Light Mode Toggle
+            </button>
+        </nav>
+        
+    </div>
+    <header class="border-b border-gray-200 bg-white sticky top-0 z-50 dark:bg-gray-900 dark:border-gray-800">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
-                <div class="flex-shrink-0">
-                    <a href="#" id="logo-link" class="text-3xl font-bold text-orange-600">RareShop</a>
+                
+                <div class="flex items-center space-x-2">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-orange-600 p-1">
+                        <img 
+                            src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762683166/menu-vector-icon-transparent-background-logo-design-concept-122599749_pksacm.webp" 
+                            alt="Menu" 
+                            class="h-6 w-6 object-contain"
+                        >
+                    </button>
+                    <div class="flex-shrink-0">
+                        <a href="#" id="logo-link" class="text-3xl font-bold text-orange-600">RareShop</a>
+                    </div>
                 </div>
 
                 <div class="flex-1 max-w-2xl mx-4 hidden sm:block">
                     <form class="flex w-full">
                         <input
                             type="search"
-                            class="flex-1 w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            class="flex-1 w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                             placeholder="Search in RareShop"
                         />
                         <button class="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
@@ -273,15 +335,15 @@
                 <div class="flex items-center space-x-4">
                     <a href="dash.html" id="admin-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium hidden">Admin Dashboard</a>
                     
-                    <a href="#" id="cart-link" class="relative text-gray-600 hover:text-orange-600">
+                    <a href="#" id="cart-link" class="relative text-gray-600 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
                         <i class="ph ph-shopping-cart text-3xl"></i>
                         <span id="cart-item-count" class="absolute top-0 right-0 -mt-1 -mr-1 px-1.5 py-0.5 bg-orange-600 text-white text-xs font-bold rounded-full">0</span>
                     </a>
                     
                     <div id="auth-status-container" class="flex items-center space-x-2">
-                        <a href="#" id="login-link" class="text-gray-600 hover:text-orange-600">Login</a>
+                        <a href="#" id="login-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium dark:text-gray-300 dark:hover:text-orange-500">Login</a>
                         <span class="text-gray-300">|</span>
-                        <a href="#" id="signup-link" class="text-gray-600 hover:text-orange-600">Sign Up</a>
+                        <a href="#" id="signup-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium dark:text-gray-300 dark:hover:text-orange-500">Sign Up</a>
                     </div>
                 </div>
             </div>
@@ -523,7 +585,7 @@
                         </div>
 
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Choose payment method</h2>
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Choose Advance Payment Method</h2>
                             
                             <div class="payment-logo-container mb-6">
                                 <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762354282/acded9d6362d497965c18a071cb9fd_yojbkb.webp" 
@@ -554,22 +616,19 @@
                                 <pre id="payment-instructions-text" class="whitespace-pre-wrap text-gray-700"></pre>
                             </div>
                         </div>
-
-                        <div id="whatsapp-instructions-section" class="space-y-4 pt-4 border-t">
-                            <h2 class="text-xl font-semibold text-gray-800">Send Payment Screenshot</h2>
-                            <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                                <h3 class="text-lg font-medium text-green-800">Action Required:</h3>
-                                <p class="text-green-700 mt-2">
-                                    After placing your order, please send your payment screenshot to our WhatsApp number for verification.
-                                </p>
-                                <a href="https://wa.me/923430821414" target="_blank" class="mt-3 inline-flex items-center justify-center px-4 py-2 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition-colors">
-                                    <i class="ph ph-whatsapp-logo text-xl mr-2"></i>
-                                    Send to WhatsApp (03430821414)
-                                </a>
+                        
+                        <div id="payment-proof-section">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4 pt-4 border-t">Payment Proof Upload (Required)</h2>
+                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                                <label for="payment-screenshot-file" class="block text-sm font-medium text-gray-700">
+                                    Upload Payment Screenshot (JPG/PNG)
+                                </label>
+                                <input type="file" id="payment-screenshot-file" required accept="image/png, image/jpeg" class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200">
+                                <p id="upload-status" class="text-sm text-blue-700 hidden">Ready to upload...</p>
                             </div>
                         </div>
                         <button type="submit" id="checkout-buy-now-btn" class="w-full py-4 bg-gray-900 text-white text-xl font-bold rounded-lg shadow-xl hover:bg-black transition-colors disabled:opacity-50 mt-6">
-                            Buy Now
+                            Place Order (Rs.0.00)
                         </button>
                         
                     </form>
@@ -585,6 +644,60 @@
         </div>
     </template>
 
+    <template id="track-order-list-template">
+        <div class="max-w-4xl mx-auto">
+            <h1 class="text-3xl font-bold text-gray-900 mb-8 border-b pb-4 dark:text-white">Your Orders</h1>
+            
+            <div id="orders-list-container" class="space-y-4">
+                <p class="text-gray-500 text-center p-8 border rounded-lg dark:text-gray-400 dark:border-gray-700">
+                    <i class="ph ph-spinner-gap text-2xl animate-spin mr-2"></i> Loading your orders...
+                </p>
+            </div>
+            
+            <p id="no-orders-message" class="text-gray-500 text-center p-8 border rounded-lg hidden dark:text-gray-400 dark:border-gray-700">
+                You have not placed any orders yet.
+            </p>
+        </div>
+    </template>
+
+    <template id="order-detail-template">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-8 dark:bg-gray-800 dark:shadow-2xl">
+            <button id="back-to-list-btn" class="mb-6 flex items-center text-orange-600 hover:text-orange-800 font-medium transition-colors">
+                <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Orders
+            </button>
+
+            <h1 class="text-3xl font-bold text-gray-900 mb-4 border-b pb-2 dark:text-white">Order <span id="detail-order-id-short"></span></h1>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="space-y-2 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Contact & Shipping</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        <span id="detail-customer-name" class="font-medium"></span><br>
+                        <span id="detail-customer-address"></span><br>
+                        <span id="detail-customer-phone"></span>
+                    </p>
+                </div>
+                <div class="space-y-2 p-4 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Details</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">
+                        **Order Date:** <span id="detail-order-date"></span><br>
+                        **Payment:** <span id="detail-payment-method"></span><br>
+                        **Status:** <span id="detail-status" class="font-bold text-green-600">Payment Confirmed</span>
+                    </p>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 dark:text-white">Items Ordered</h3>
+            <div id="detail-items-container" class="space-y-3">
+                </div>
+
+            <div class="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
+                <span class="text-xl font-bold text-gray-900 dark:text-white">Order Total</span>
+                <span id="detail-total-price" class="text-xl font-bold text-orange-600">Rs.0.00</span>
+            </div>
+        </div>
+    </template>
+    
     <template id="faq-view-template">
         <div class="max-w-4xl mx-auto">
             <button id="back-to-home-btn-faq" class="mb-8 flex items-center text-gray-600 hover:text-orange-600 font-medium transition-colors">
@@ -602,7 +715,7 @@
                         <i class="ph ph-minus text-xl text-orange-600 flex-shrink-0 hidden"></i>
                     </button>
                     <div class="faq-answer hidden p-4 md:p-5 border-t border-gray-100 bg-white">
-                        <p class="text-gray-700">Simply browse our products, add your desired items to the cart, and proceed to checkout. After confirming your details and making the payment, your order will be processed immediately.</p>
+                        <p class="text-gray-700">Simply browse our products, add your desired items to the cart, proceed to checkout, and complete the advance payment using one of the provided methods. Your order will be processed after payment proof is verified.</p>
                     </div>
                 </div>
 
@@ -613,7 +726,7 @@
                         <i class="ph ph-minus text-xl text-orange-600 flex-shrink-0 hidden"></i>
                     </button>
                     <div class="faq-answer hidden p-4 md:p-5 border-t border-gray-100 bg-white">
-                        <p class="text-gray-700">Currently, we only accept advance payments (via bank transfer, Easypaisa, or JazzCash). Once payment is received, your order will be confirmed and shipped.</p>
+                        <p class="text-gray-700">Currently, we only accept advance payments (via bank transfer, Easypaisa, NayaPay, or Digitt+). Once payment proof is uploaded and verified, your order will be confirmed and shipped.</p>
                     </div>
                 </div>
 
@@ -635,7 +748,7 @@
                         <i class="ph ph-minus text-xl text-orange-600 flex-shrink-0 hidden"></i>
                     </button>
                     <div class="faq-answer hidden p-4 md:p-5 border-t border-gray-100 bg-white">
-                        <p class="text-gray-700">After successful payment, you’ll receive an order confirmation message or email with your tracking details once the product is shipped.</p>
+                        <p class="text-gray-700">After successful payment verification, you’ll receive an order confirmation message or email with your tracking details once the product is shipped.</p>
                     </div>
                 </div>
 
@@ -700,7 +813,7 @@
                 <div class="policy-section">
                     <h2 class="text-xl font-semibold text-gray-800 mb-2">1. Order Processing</h2>
                     <ul class="list-disc list-inside space-y-1 pl-2">
-                        <li>All orders are processed after full payment confirmation.</li>
+                        <li>All orders are processed after full advance payment and proof verification.</li>
                         <li>Once payment is verified, your order will be packed and dispatched within 24–48 hours (excluding Sundays and public holidays).</li>
                         <li>You will receive an order confirmation message or email with your order details and tracking information.</li>
                     </ul>
@@ -723,10 +836,10 @@
                             <ul class="list-disc list-inside ml-6 mt-1">
                                 <li>Bank Transfer</li>
                                 <li>Easypaisa</li>
-                                <li>JazzCash</li>
+                                <li>NayaPay / Digitt+ (Other Local Wallets)</li>
                             </ul>
                         </li>
-                        <li>Orders are processed only after payment is received.</li>
+                        <li>Orders are processed only after payment proof is uploaded and verified.</li>
                     </ul>
                 </div>
 
@@ -842,7 +955,7 @@
                     <p class="mb-2 font-medium text-gray-800">Replacement or Refund:</p>
                     <ul class="list-disc list-inside space-y-1 pl-2">
                         <li>Replacement will be sent after the returned item is inspected.</li>
-                        <li>Refunds (if applicable) will be processed to your bank, Easypaisa, or JazzCash account within 5–7 working days after verification.</li>
+                        <li>Refunds (if applicable) will be processed back to your original payment method within 5–7 working days after verification.</li>
                     </ul>
                 </div>
 
@@ -931,14 +1044,8 @@
                     <ul class="list-disc list-inside space-y-1 pl-2">
                         <li>All prices are listed in Pakistani Rupees (PKR) and include applicable taxes (if any).</li>
                         <li>Payment must be made in full before order confirmation.</li>
-                        <li>We currently accept payments through:
-                            <ul class="list-disc list-inside ml-6 mt-1">
-                                <li>Bank Transfer</li>
-                                <li>Easypaisa</li>
-                                <li>JazzCash</li>
-                            </ul>
-                        </li>
-                        <li>Orders are processed only after payment is received.</li>
+                        <li>We currently accept advance payments only (Easypaisa, NayaPay, Digi++).</li>
+                        <li>Orders are processed only after payment proof is uploaded and verified.</li>
                         <li>RareShop reserves the right to cancel orders or change prices due to typographical or system errors.</li>
                     </ul>
                 </div>
@@ -958,7 +1065,7 @@
                     <ul class="list-disc list-inside space-y-1 pl-2">
                         <li>If your product arrives damaged, scratched, or defective, you can request a return within 30 days of delivery.</li>
                         <li>Returns are accepted only with proof (unboxing video or photos) and if the product is in its original packaging.</li>
-                        <li>Refunds are processed within 5–7 working days after verification.</li>
+                        <li>Refunds are processed to your original payment method within 5–7 working days after verification.</li>
                         <li>For complete details, please refer to our Return Policy.</li>
                     </ul>
                 </div>
@@ -1075,11 +1182,7 @@
                     <ul class="list-disc list-inside space-y-1 pl-2">
                         <li>100% Original and Verified Products</li>
                         <li>Nationwide Delivery via Trusted Couriers (TCS, M&P, Leopards, etc.)</li>
-                        <li>Multiple Secure Payment Options:
-                            <ul class="list-disc list-inside ml-6 mt-1 text-sm">
-                                <li>Bank Transfer, Easypaisa, JazzCash, Sadapay, NayaPay, Digi+, and other local wallet methods</li>
-                            </ul>
-                        </li>
+                        <li>Secure Advance Payment System (Easypaisa, NayaPay, Digi++)</li>
                         <li>30-Day Return Policy for Eligible Orders</li>
                         <li>Professional and Friendly Customer Support</li>
                     </ul>
@@ -1238,6 +1341,77 @@
             </div>
         </div>
     </div>
+    <script>
+        const htmlElement = document.documentElement;
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const sidebarCloseBtn = document.getElementById('sidebar-close-btn');
+        const sidebarThemeToggleBtn = document.getElementById('sidebar-theme-toggle-btn');
+
+
+        // --- Theme Toggle Logic (Used by both inline and sidebar button) ---
+
+        function setTheme(theme) {
+            if (theme === 'dark') {
+                htmlElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark'); 
+            } else {
+                htmlElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        // Initialize theme on load
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            setTheme(savedTheme);
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            setTheme('dark');
+        } else {
+            setTheme('light');
+        }
+        
+        // --- Sidebar Logic ---
+
+        function toggleSidebar() {
+            const isOpen = mobileSidebar.classList.contains('open');
+            
+            // Toggle classes for visual effect
+            mobileSidebar.classList.toggle('open', !isOpen);
+            sidebarBackdrop.classList.toggle('open', !isOpen);
+            sidebarBackdrop.classList.toggle('hidden', isOpen);
+            
+            // Prevent body scrolling when the sidebar is open
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        }
+
+        // Attach listeners
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', toggleSidebar);
+        }
+        if (sidebarCloseBtn) {
+            sidebarCloseBtn.addEventListener('click', toggleSidebar);
+        }
+        if (sidebarBackdrop) {
+            // Close sidebar when clicking the dark overlay
+            sidebarBackdrop.addEventListener('click', toggleSidebar);
+        }
+
+        // Sidebar Theme Toggle Listener
+        if (sidebarThemeToggleBtn) {
+            sidebarThemeToggleBtn.addEventListener('click', () => {
+                const isDarkMode = htmlElement.classList.contains('dark');
+                if (isDarkMode) {
+                    setTheme('light');
+                } else {
+                    setTheme('dark');
+                }
+            });
+        }
+        // NOTE: The WhishList and Track Order links in the sidebar are ready to be wired up to your navigation functions if needed.
+
+    </script>
     <script type="module">
         // Import Firebase modules
         import { 
@@ -1248,11 +1422,11 @@
             signInAnonymously, 
             signInWithCustomToken, 
             onAuthStateChanged,
-            createUserWithEmailAndPassword, // For Email/Password
-            signInWithEmailAndPassword,     // For Email/Password
-            signOut,                         // For Logout
-            GoogleAuthProvider,             // NEW: For Google Sign-in
-            signInWithPopup                 // NEW: For Google Sign-in
+            createUserWithEmailAndPassword, 
+            signInWithEmailAndPassword,     
+            signOut,                         
+            GoogleAuthProvider,             
+            signInWithPopup                 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // Import Firestore modules
@@ -1269,8 +1443,25 @@
             setDoc, 
             updateDoc, 
             deleteDoc,
-            runTransaction // NEW: Import for safe stock decrement
+            orderBy, 
+            limit,
+            runTransaction 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // 📢 NEW: Import Supabase for Storage
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'; 
+
+        // --- NEW SUPABASE CONFIG (USING YOUR CREDENTIALS) ---
+        const SUPABASE_URL = 'https://cgzxltxzkjadeimnbavi.supabase.co'; 
+        // NOTE: Using the provided key below.
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNnenhsdHh6a2phZGVpbW5iYXZpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NjYxMDMsImV4cCI6MjA3ODM0MjEwM30.ozAbQQX7fixrXsxAYAXm1BNBR5_pHmv-t_6OL5_rc1s';
+        const BUCKET_NAME = 'payment-proofs';
+        let supabase;
+
+        function initializeSupabase() {
+            supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+        // --- END SUPABASE CONFIG ---
         
         // --- Use Environment Variables for Config ---
         const firebaseConfigFromEnv = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
@@ -1284,7 +1475,7 @@
             apiKey: "AIzaSyA6YCRk-7wPFZfCz7YKtIX2v1I-QXqw75c",
             authDomain: "rareshop-53694.firebaseapp.com",
             projectId: "rareshop-53694",
-            storageBucket: "rareshop-53694.appspot.com", // <-- Corrected storage bucket format
+            storageBucket: "rareshop-53694.appspot.com", 
             messagingSenderId: "431233428581",
             appId: "1:431233428581:web:a8fdf075545e62b28f2a8c",
             measurementId: "G-HKH7EYZMC5"
@@ -1296,34 +1487,31 @@
 
         // --- Global State and DOM Elements ---
         let app, auth, db; 
-        let userId = ''; // Will be set after auth
-        let loggedInUser = null; // NEW: Holds the authenticated user object or null
-        let appState = 'home'; // 'home', 'detail', 'listing', 'category', 'cart', 'checkout', 'faq', 'shipping', 'return', 'tos', 'about'
-        let currentTag = ''; // For 'listing' state
-        let currentCategory = ''; // For 'category' state
-        let currentPage = 1; // For 'category' pagination
-        let cartItems = {}; // {productId: {id, name, price, quantity, ...}, ...}
-        // REMOVED: Notification state
+        let userId = ''; 
+        let loggedInUser = null; 
+        let appState = 'home'; 
+        let currentTag = ''; 
+        let currentCategory = ''; 
+        let currentPage = 1; 
+        let cartItems = {}; 
         
-        const categoryItemsPerPage = 10; // Categories show 10 items per page
+        const categoryItemsPerPage = 10; 
 
-        let productListeners = []; // To hold and manage all onSnapshot listeners
-        let activeTimers = {}; // To manage countdown intervals
+        let productListeners = []; 
+        let activeTimers = {}; 
         
-        // NEW: Checkout specific state
-        let selectedPaymentMethod = null;
+        // Reset payment method to null for manual selection
+        let selectedPaymentMethod = null; 
         
-        // NEW: Carousel state
         let carouselInterval;
         let carouselTimeout;
         let currentSlideIndex = 0;
-        const SLIDE_DURATION = 4000; // 4 seconds
+        const SLIDE_DURATION = 4000; 
 
         const mainContentContainer = document.getElementById('main-content-container');
         const userIdDisplay = document.getElementById('user-id-display');
         const cartItemCountEl = document.getElementById('cart-item-count');
-        // REMOVED: Notification DOM elements
-        // NEW Auth Modal DOM elements
+        
         const authModal = document.getElementById('authModal');
         const authModalCloseBtn = document.getElementById('authModalCloseBtn');
         const authModalTitle = document.getElementById('auth-modal-title');
@@ -1336,14 +1524,14 @@
         const loginErrorMsg = document.getElementById('login-error-message');
         const signupErrorMsg = document.getElementById('signup-error-message');
         const authStatusContainer = document.getElementById('auth-status-container');
-        const googleSignInBtn = document.getElementById('google-sign-in-btn'); // NEW: Google button element
+        const googleSignInBtn = document.getElementById('google-sign-in-btn'); 
 
         // --- Core Firestore Paths ---
         const PRODUCTS_COLLECTION_PATH = `artifacts/${appId}/public/data/products`; 
         const BANNERS_COLLECTION_PATH = `artifacts/${appId}/public/data/banners`;
-        const CART_COLLECTION_PATH = (uid) => `artifacts/${appId}/users/${uid}/cart`; // Private to user
-        // REMOVED: Notification path
-        const CURRENCY_SYMBOL = 'Rs.'; // Pakistani Rupee Symbol / Abbreviation
+        const ORDERS_COLLECTION_PATH = `artifacts/${appId}/public/data/orders`; 
+        const CART_COLLECTION_PATH = (uid) => `artifacts/${appId}/users/${uid}/cart`; 
+        const CURRENCY_SYMBOL = 'Rs.'; 
 
 
         /**
@@ -1353,11 +1541,9 @@
             productListeners.forEach(unsubscribe => unsubscribe());
             productListeners = [];
             
-            // Clear all active countdown intervals
             Object.values(activeTimers).forEach(clearInterval);
             activeTimers = {};
             
-            // Clear carousel timers
             if (carouselInterval) clearInterval(carouselInterval);
             if (carouselTimeout) clearTimeout(carouselTimeout);
         }
@@ -1366,8 +1552,6 @@
 
         /**
          * Calculates the product's effective price (discounted if sale is active).
-         * @param {object} product - The product object.
-         * @returns {number} The effective price.
          */
         function getEffectivePrice(product) {
             const now = new Date().getTime();
@@ -1381,8 +1565,6 @@
 
         /**
          * Returns a human-readable time difference string.
-         * @param {Date} date - The date object of the notification.
-         * @returns {string} E.g., "5 minutes ago", "Yesterday, or "DD/MM/YYYY".
          */
         function timeSince(date) {
             if (!date) return 'N/A';
@@ -1404,13 +1586,203 @@
         }
 
 
+        // --- Order Tracking Logic (NEW) ---
+
+        /**
+         * Renders the main order tracking page (list view).
+         */
+        function showTrackOrderView() {
+            if (!loggedInUser || !loggedInUser.uid) {
+                showModal("Login Required", "Please log in to view and track your orders.");
+                const isOpen = mobileSidebar.classList.contains('open');
+                if (isOpen) toggleSidebar();
+                return;
+            }
+
+            clearListeners(); 
+            appState = 'track-order';
+            
+            const template = document.getElementById('track-order-list-template');
+            if (!template) {
+                console.error("Order tracking template not found!");
+                return;
+            }
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            const isOpen = mobileSidebar.classList.contains('open');
+            if (isOpen) toggleSidebar();
+
+            fetchAndRenderOrders();
+        }
+
+        /**
+         * Fetches and renders the list of orders for the current user in real-time.
+         */
+        function fetchAndRenderOrders() {
+            if (!db || !loggedInUser || !loggedInUser.uid) return;
+
+            const ordersListContainer = document.getElementById('orders-list-container');
+            const noOrdersMessage = document.getElementById('no-orders-message');
+
+            const q = query(
+                collection(db, ORDERS_COLLECTION_PATH),
+                where("userId", "==", loggedInUser.uid),
+                orderBy("orderDate", "desc"),
+                limit(50) 
+            );
+            
+            const unsubscribe = onSnapshot(q, (snapshot) => {
+                const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                ordersListContainer.innerHTML = ''; 
+
+                if (orders.length === 0) {
+                    noOrdersMessage.classList.remove('hidden');
+                } else {
+                    noOrdersMessage.classList.add('hidden');
+                    
+                    orders.forEach(order => {
+                        const orderDate = order.orderDate ? (order.orderDate.toDate ? order.orderDate.toDate().toLocaleDateString() : 'N/A') : 'N/A';
+                        const orderIdShort = order.id.substring(0, 8).toUpperCase();
+                        
+                        const orderEl = document.createElement('div');
+                        orderEl.className = 'flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700';
+                        orderEl.setAttribute('data-order-id', order.id);
+
+                        const statusColor = order.status === 'Payment Confirmed' ? 'text-green-600' : 
+                                            (order.status === 'Pending Verification' ? 'text-yellow-600' : 'text-red-600');
+
+                        orderEl.innerHTML = `
+                            <div>
+                                <h3 class="text-lg font-bold text-gray-900 dark:text-white">Order #${orderIdShort}</h3>
+                                <p class="text-sm text-gray-500">Placed on ${orderDate}</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="font-bold text-xl text-orange-600">${CURRENCY_SYMBOL}${order.total.toFixed(2)}</span>
+                                <p class="text-sm font-medium ${statusColor}">
+                                    Status: ${order.status}
+                                </p>
+                            </div>
+                        `;
+                        
+                        orderEl.addEventListener('click', () => showOrderDetailView(order));
+                        
+                        ordersListContainer.appendChild(orderEl);
+                    });
+                }
+            }, (error) => {
+                console.error("Error fetching orders:", error);
+                ordersListContainer.innerHTML = `<p class="col-span-full p-8 text-center text-red-500">Failed to load orders. (Error: ${error.message})</p>`;
+                noOrdersMessage.classList.add('hidden');
+            });
+            
+            productListeners.push(unsubscribe); 
+        }
+
+        /**
+         * Renders the specific detail page for a single order.
+         */
+        function showOrderDetailView(order) {
+            clearListeners();
+            appState = 'order-detail';
+
+            const template = document.getElementById('order-detail-template');
+            if (!template) return;
+
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+
+            document.getElementById('back-to-list-btn').addEventListener('click', showTrackOrderView);
+
+            const orderIdShort = order.id.substring(0, 8).toUpperCase();
+            document.getElementById('detail-order-id-short').textContent = `#${orderIdShort}`;
+
+            document.getElementById('detail-customer-name').textContent = `${order.shipping.firstName} ${order.shipping.lastName}`;
+            document.getElementById('detail-customer-address').textContent = `${order.shipping.address}, ${order.shipping.city}, ${order.shipping.postalCode}, ${order.shipping.country}`;
+            document.getElementById('detail-customer-phone').textContent = `Phone: ${order.shipping.phone}`;
+            
+            document.getElementById('detail-order-date').textContent = order.orderDate ? (order.orderDate.toDate ? order.orderDate.toDate().toLocaleString() : 'N/A') : 'N/A';
+            
+            document.getElementById('detail-payment-method').textContent = order.paymentMethod || 'Advance Payment';
+            
+            const detailStatusEl = document.getElementById('detail-status');
+            detailStatusEl.textContent = order.status;
+            detailStatusEl.classList.remove('text-red-600', 'text-green-600', 'text-blue-600', 'text-yellow-600');
+
+            if (order.status.includes('Pending')) {
+                detailStatusEl.classList.add('text-yellow-600');
+            } else if (order.status.includes('Confirmed') || order.status.includes('Shipped') || order.status.includes('Delivered')) {
+                detailStatusEl.classList.add('text-green-600');
+            } else {
+                 detailStatusEl.classList.add('text-red-600');
+            }
+
+            const itemsContainer = document.getElementById('detail-items-container');
+            itemsContainer.innerHTML = '';
+            order.items.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'flex items-center space-x-4 p-3 bg-gray-100 rounded-lg dark:bg-gray-700';
+                itemEl.innerHTML = `
+                    <img src="${item.image || 'https://placehold.co/60x60/e2e8f0/9ca3af?text=IMG'}" 
+                         alt="${item.name}" 
+                         class="h-10 w-10 object-cover rounded-md flex-shrink-0"
+                         onerror="this.onerror=null;this.src='https://placehold.co/60x60/e2e8f0/9ca3af?text=IMG';">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-900 dark:text-white">${item.name}</p>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">${CURRENCY_SYMBOL}${item.price.toFixed(2)} x ${item.quantity}</p>
+                    </div>
+                    <span class="text-sm font-bold text-gray-900 dark:text-white flex-shrink-0">${CURRENCY_SYMBOL}${(item.price * item.quantity).toFixed(2)}</span>
+                `;
+                itemsContainer.appendChild(itemEl);
+            });
+
+            document.getElementById('detail-total-price').textContent = `${CURRENCY_SYMBOL}${order.total.toFixed(2)}`;
+
+            listenToSingleOrder(order.id);
+        }
+        
+        /**
+         * Attaches a real-time listener to a single order document for status updates.
+         */
+        function listenToSingleOrder(orderId) {
+            if (!db) return;
+
+            const orderRef = doc(db, ORDERS_COLLECTION_PATH, orderId);
+            
+            const unsubscribe = onSnapshot(orderRef, (docSnap) => {
+                if (docSnap.exists() && appState === 'order-detail') {
+                    const updatedOrder = docSnap.data();
+                    const detailStatusEl = document.getElementById('detail-status');
+                    
+                    if (detailStatusEl && updatedOrder.status) {
+                        detailStatusEl.textContent = updatedOrder.status;
+                        
+                        detailStatusEl.classList.remove('text-red-600', 'text-green-600', 'text-blue-600', 'text-yellow-600');
+                         if (updatedOrder.status.includes('Pending')) {
+                            detailStatusEl.classList.add('text-yellow-600');
+                        } else if (updatedOrder.status.includes('Confirmed') || updatedOrder.status.includes('Shipped') || updatedOrder.status.includes('Delivered')) {
+                            detailStatusEl.classList.add('text-green-600');
+                        } else {
+                             detailStatusEl.classList.add('text-red-600');
+                        }
+                    }
+                }
+            }, (error) => {
+                console.error("Error listening to single order:", error);
+            });
+
+            productListeners.push(unsubscribe);
+        }
+
         // --- Cart Logic (UPDATED) ---
 
         /**
          * Attaches a real-time listener to the user's cart in Firestore.
          */
         function listenToCart() {
-            // FIX: Use loggedInUser.uid for authenticated users, fall back to userId for anonymous
             const currentUid = loggedInUser && loggedInUser.uid ? loggedInUser.uid : userId;
 
             if (!db || !currentUid) {
@@ -1418,7 +1790,6 @@
                 return;
             }
             
-            // Clear old cart listeners if they exist (only one should be active)
             const oldCartListener = productListeners.find(l => l.isCartListener);
             if (oldCartListener) {
                 oldCartListener();
@@ -1437,22 +1808,24 @@
                     newCartItems[item.id] = item;
                 });
                 
-                cartItems = newCartItems; // Update global state
-                cartItemCountEl.textContent = totalCount; // Update header display
+                cartItems = newCartItems; 
+                cartItemCountEl.textContent = totalCount; 
                 
-                // If we are currently on the cart view, re-render it
                 if (appState === 'cart') {
-                    renderCartView(false); // Render without clearing listeners
+                    renderCartView(false); 
                 }
                 
-                // If we are on the checkout view, update the summary
                 if (appState === 'checkout') {
                     renderCheckoutSummary(cartItems);
+                    const total = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                    const buyNowBtn = document.getElementById('checkout-buy-now-btn');
+                    if(buyNowBtn) {
+                         buyNowBtn.textContent = `Place Order (${CURRENCY_SYMBOL}${total.toFixed(2)})`;
+                    }
                 }
 
             }, (error) => {
                 console.error("Error listening to cart:", error);
-                // On error, revert count and show modal
                 cartItemCountEl.textContent = 'E'; 
                 showModal("Cart Error", "Failed to load cart items in real-time.");
             });
@@ -1463,22 +1836,16 @@
 
         /**
          * Adds or updates a product in the cart.
-         * * @param {object} product - The product data to add.
-         * @param {number} change - Quantity change (+1 or -1).
-         * @param {boolean} immediateCheckout - If true, navigates to checkout after successful update.
-         * @param {boolean} [showModalOnSuccess=true] - NEW: If true, shows the "Item Added" modal.
          */
         async function updateCart(product, change, immediateCheckout = false, showModalOnSuccess = true) {
-            // UPDATED: Require user to be logged in
             if (!loggedInUser || !loggedInUser.email) {
                 showModal("Login Required", "Please log in or sign up to add items to your cart.");
-                showAuthModal('login'); // Automatically show login tab
+                showAuthModal('login'); 
                 return;
             }
             
             const currentUid = loggedInUser.uid;
 
-            // NEW: Stock Check Logic
             const currentStock = product.stock || 0;
             const existingItem = cartItems[product.id] || { quantity: 0 };
             const newQuantity = Math.max(0, existingItem.quantity + change);
@@ -1488,7 +1855,6 @@
                  return;
             }
             
-            // Use the effective price for cart calculation
             const effectivePrice = getEffectivePrice(product);
 
             try {
@@ -1499,15 +1865,13 @@
                         productId: product.id,
                         name: product.name,
                         image: product.image,
-                        price: effectivePrice, // Save the price at the time of adding
+                        price: effectivePrice, 
                         quantity: newQuantity,
                         addedAt: new Date(),
                     }, { merge: true });
                     
-                    // --- FIX: Introduce a small delay to prevent race condition with onSnapshot listener ---
                     await new Promise(resolve => setTimeout(resolve, 50));
 
-                    // Only show modal if requested (i.e., not when using +/- buttons in cart view)
                     if (showModalOnSuccess) {
                         showModal("Item Added", `${product.name} quantity updated to ${newQuantity} in cart.`);
                     }
@@ -1517,7 +1881,6 @@
                 }
                 
                 if (immediateCheckout) {
-                    // Give a small delay to ensure Firestore listener registers the cart update
                     setTimeout(() => showCheckoutView(), 100);
                 }
 
@@ -1529,7 +1892,6 @@
         
         /**
          * Renders the cart view.
-         * @param {boolean} clearFirst - Whether to clear all listeners before rendering.
          */
         function renderCartView(clearFirst = true) {
             if (clearFirst) {
@@ -1558,7 +1920,7 @@
             let subtotal = 0;
             let totalCount = 0;
             
-            cartItemsContainer.innerHTML = ''; // Clear loading/empty message initially
+            cartItemsContainer.innerHTML = ''; 
 
             const sortedItems = Object.values(cartItems).sort((a, b) => (a.addedAt?.toDate() || 0) - (b.addedAt?.toDate() || 0));
 
@@ -1601,7 +1963,6 @@
                     cartItemsContainer.appendChild(itemEl);
                 });
                 
-                // Attach event listeners for quantity/remove buttons
                 cartItemsContainer.querySelectorAll('.cart-quantity-btn, .cart-remove-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const productId = e.currentTarget.getAttribute('data-id');
@@ -1610,7 +1971,6 @@
                         
                         if (!productData) return;
                         
-                        // NEW: Get the *latest* product data before cart operation for stock check
                         const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
                         const productSnap = await getDoc(productRef);
                         
@@ -1626,14 +1986,11 @@
                         } else if (action === 'decrease') {
                             change = -1;
                         } else if (action === 'remove') {
-                            change = -productData.quantity; // Remove all
+                            change = -productData.quantity; 
                         }
                         
-                        // Use false for showModalOnSuccess when manipulating quantity directly in cart
                         await updateCart(product, change, false, false); 
                         
-                        // Manually trigger re-render of the cart view to update summary totals
-                        // This prevents the visual lag while waiting for the Firestore listener
                         renderCartView(false); 
                     });
                 });
@@ -1642,19 +1999,15 @@
                 cartItemsContainer.innerHTML = '<p class="text-gray-500 text-center p-8 border rounded-lg">Your cart is empty.</p>';
             }
             
-            // Update summary
-            const total = subtotal; // Shipping is FREE
+            const total = subtotal; 
             summaryItemCountEl.textContent = totalCount;
             summarySubtotalEl.textContent = `${CURRENCY_SYMBOL}${subtotal.toFixed(2)}`;
             summaryTotalEl.textContent = `${CURRENCY_SYMBOL}${total.toFixed(2)}`;
             
-            // Enable/disable checkout button
             proceedBtn.disabled = totalCount === 0;
 
-            // Attach "Proceed to Checkout" listener
             proceedBtn.addEventListener('click', showCheckoutView);
             
-            // Re-listen to cart if not already, to catch external changes
             if (clearFirst && loggedInUser && loggedInUser.uid) {
                 listenToCart();
             }
@@ -1664,17 +2017,15 @@
          * Renders the checkout page.
          */
         function showCheckoutView() {
-            // UPDATED: Check for login before showing checkout
             if (!loggedInUser || !loggedInUser.email) {
                 showModal("Login Required", "Please log in to proceed to checkout.");
                 showAuthModal('login');
                 return;
             }
             
-            clearListeners(); // Stop all other listeners
+            clearListeners(); 
             appState = 'checkout';
             
-            // Clear checkout state
             selectedPaymentMethod = null;
             
             const template = document.getElementById('checkout-view-template');
@@ -1686,30 +2037,29 @@
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
             
-            // Pre-fill email field if logged in
             const contactEmailInput = document.getElementById('contact-email');
             if (contactEmailInput && loggedInUser.email) {
                 contactEmailInput.value = loggedInUser.email;
-                contactEmailInput.readOnly = true; // Prevent changing email on checkout if logged in
+                contactEmailInput.readOnly = true; 
                 contactEmailInput.classList.add('bg-gray-100');
             }
+            
+            const total = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            document.getElementById('checkout-buy-now-btn').textContent = `Place Order (${CURRENCY_SYMBOL}${total.toFixed(2)})`;
 
-            // Re-render cart summary immediately and start the listener
             renderCheckoutSummary(cartItems);
-            listenToCart(); // Restart cart listener just for summary updates on this page
+            listenToCart(); 
 
-            // Attach listeners for the back button and form logic
             document.getElementById('return-to-cart-link').addEventListener('click', (e) => {
                 e.preventDefault();
-                renderCartView(true); // Go back to cart view, clearing listeners first
+                renderCartView(true); 
             });
 
-            setupCheckoutFormListeners();
+            setupCheckoutFormListeners(total);
         }
 
         /**
          * Renders the Order Summary on the Checkout page.
-         * @param {object} items - The current cart items object.
          */
         function renderCheckoutSummary(items) {
             const container = document.getElementById('checkout-summary-content');
@@ -1744,9 +2094,8 @@
                 `;
             });
 
-            const total = subtotal; // Shipping is FREE
+            const total = subtotal; 
             
-            // Summary Footer
             html += `
                 <div class="space-y-3 mt-4 text-gray-700">
                     <div class="flex justify-between">
@@ -1770,90 +2119,126 @@
         /**
          * Sets up listeners for the checkout form, including payment method selection and file upload.
          */
-        function setupCheckoutFormListeners() {
+        function setupCheckoutFormListeners(currentTotal) {
             const form = document.getElementById('checkout-form');
             const buyNowBtn = document.getElementById('checkout-buy-now-btn');
             const paymentLogos = document.querySelectorAll('.payment-logo');
             const instructionsContainer = document.getElementById('payment-instructions-container');
             const instructionsHeading = document.getElementById('payment-instructions-heading');
             const instructionsText = document.getElementById('payment-instructions-text');
+            const screenshotFile = document.getElementById('payment-screenshot-file');
             
             // --- Payment Method Selection ---
             paymentLogos.forEach(logo => {
                 logo.addEventListener('click', () => {
-                    // Reset selected state on all logos
                     paymentLogos.forEach(l => l.classList.remove('selected'));
                     
-                    // Set selected state on clicked logo
                     logo.classList.add('selected');
                     selectedPaymentMethod = logo.getAttribute('data-method');
                     
-                    // Display instructions
                     instructionsHeading.textContent = logo.getAttribute('data-heading');
                     instructionsText.textContent = logo.getAttribute('data-instructions');
                     instructionsContainer.classList.remove('hidden');
                     
-                    // Check button state
                     updateBuyNowButtonState();
                 });
             });
 
             // --- Form Input Listener (for validation) ---
             form.addEventListener('input', updateBuyNowButtonState);
+            screenshotFile?.addEventListener('change', updateBuyNowButtonState);
 
-            /**
-             * Updates the disabled state of the "Buy Now" button based on form requirements.
-             */
+
             function updateBuyNowButtonState() {
                 const isFormValid = form.checkValidity();
                 const isPaymentSelected = selectedPaymentMethod !== null;
-
-                // Button is enabled ONLY if: Form is valid AND payment selected
-                buyNowBtn.disabled = !(isFormValid && isPaymentSelected);
+                const isFileSelected = screenshotFile?.files.length > 0;
+                const total = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                
+                buyNowBtn.disabled = !(isFormValid && isPaymentSelected && isFileSelected);
+                buyNowBtn.textContent = `Place Order (${CURRENCY_SYMBOL}${total.toFixed(2)})`;
             }
             
-            // Initial button state check
             updateBuyNowButtonState();
 
-            // --- Form Submission (Final Step with Stock Decrement) ---
+            // --- Form Submission (Final Step with Supabase Upload) ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
                 if (buyNowBtn.disabled) {
-                    showModal("Missing Information", "Please fill out all required fields and select a payment method.");
+                    showModal("Missing Information", "Please fill out all required fields, select a payment method, and upload the payment screenshot.");
                     return;
                 }
                 
-                // CRITICAL CHECK: Ensure user is still logged in before transaction
                 if (!loggedInUser || !loggedInUser.uid) {
                     showModal("Authentication Error", "You must be logged in to place an order. Please sign in again.");
                     buyNowBtn.disabled = false;
-                    buyNowBtn.textContent = 'Buy Now';
                     return;
                 }
                 
+                const finalOrderTotal = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 const cartItemsArray = Object.values(cartItems);
-                if (cartItemsArray.length === 0) {
-                     showModal("Cart Empty", "Your cart is empty. Please add items before checking out.");
+
+                if (cartItemsArray.length === 0 || finalOrderTotal === 0) {
+                     showModal("Cart Empty", "Your cart is empty. Please add items before placing an order.");
                      return;
                 }
+
+                // --- 📢 SUPABASE FILE UPLOAD LOGIC START ---
+                const fileToUpload = screenshotFile.files[0];
+                const uploadStatusEl = document.getElementById('upload-status');
                 
+                if (!fileToUpload) { 
+                    showModal("Missing Proof", "Please upload a payment screenshot to proceed.");
+                    return;
+                }
+
                 // Disable button and show loading state
                 buyNowBtn.disabled = true;
-                buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Initializing Order...';
+                buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Uploading Screenshot...';
+                uploadStatusEl.textContent = 'Uploading file...';
+                uploadStatusEl.classList.remove('hidden');
 
-                // Generate a unique ID for the order document before processing
+                let downloadURL = null;
+                try {
+                    const fileExtension = fileToUpload.name.split('.').pop();
+                    const filePath = `${loggedInUser.uid}/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExtension}`; 
+
+                    // 1. UPLOAD FILE using Supabase Storage
+                    const { error } = await supabase.storage
+                        .from(BUCKET_NAME)
+                        .upload(filePath, fileToUpload, {
+                            cacheControl: '3600', 
+                            upsert: false 
+                        });
+                    
+                    if (error) throw error;
+                    
+                    // 2. CONSTRUCT PUBLIC URL
+                    downloadURL = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${filePath}`;
+
+                    uploadStatusEl.textContent = 'Upload complete.';
+
+                } catch (error) {
+                    console.error("Storage Upload Error:", error);
+                    showModal("Upload Error", `Failed to upload payment proof: ${error.message}. Please check your Supabase bucket settings.`);
+                    buyNowBtn.disabled = false;
+                    buyNowBtn.textContent = `Place Order (${CURRENCY_SYMBOL}${finalOrderTotal.toFixed(2)})`;
+                    uploadStatusEl.textContent = 'Upload failed. Try again.';
+                    return;
+                }
+                // --- 📢 SUPABASE FILE UPLOAD LOGIC END ---
+
                 const ordersCollectionPath = `artifacts/${appId}/public/data/orders`;
                 const newOrderRef = doc(collection(db, ordersCollectionPath));
                 
                 try {
-                    // --- NEW: Atomic Stock Decrement via Transaction ---
+                    // --- Atomic Stock Decrement via Transaction ---
                     buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Checking Stock...';
 
                     await runTransaction(db, async (transaction) => {
                         const productUpdates = [];
                         
-                        // 1. Check stock for every item and prepare the update
                         for (const item of cartItemsArray) {
                             const productRef = doc(db, PRODUCTS_COLLECTION_PATH, item.productId);
                             const productSnap = await transaction.get(productRef);
@@ -1870,7 +2255,6 @@
                                 throw new Error(`Insufficient stock for ${item.name}. Only ${currentStock} available.`);
                             }
                             
-                            // Collect the update
                             productUpdates.push({
                                 ref: productRef,
                                 newStock: newStock,
@@ -1878,7 +2262,6 @@
                             });
                         }
                         
-                        // 2. All stock is available - perform the stock updates in the transaction
                         productUpdates.forEach(update => {
                             transaction.update(update.ref, { 
                                 stock: update.newStock,
@@ -1886,12 +2269,12 @@
                             });
                         });
                         
-                        // 3. Place the order
+                        // 3. Place the order, saving the URL
                         buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Placing Order...';
                         const orderData = {
                             userId: loggedInUser.uid,
                             items: cartItemsArray.map(item => ({...item, addedAt: null})), 
-                            total: cartItemsArray.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                            total: finalOrderTotal,
                             contact: form.elements['contact-email'].value,
                             shipping: {
                                 firstName: form.elements['shipping-first-name'].value,
@@ -1904,14 +2287,13 @@
                                 country: form.elements['shipping-country'].value,
                             },
                             paymentMethod: selectedPaymentMethod,
-                            status: 'Pending Verification',
+                            paymentProofUrl: downloadURL, // 📢 SAVING THE UPLOADED URL
+                            status: 'Pending Verification', 
                             orderDate: new Date(),
                         };
                         transaction.set(newOrderRef, orderData); 
                     });
                     
-                    // --- End Transaction ---
-
                     // 4. Clear the cart AFTER successful transaction
                     buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Clearing Cart...';
                     const cartRefs = await getDocs(collection(db, CART_COLLECTION_PATH(loggedInUser.uid)));
@@ -1922,37 +2304,24 @@
                     await Promise.all(deletePromises);
                     
                     // 5. Success message and redirect
-                    showModal("Order Placed!", "Your order has been placed and is pending verification. Please send your payment screenshot to our WhatsApp number.");
-                    renderHomeView(); // Go back to the home page
+                    showModal("Order Placed!", `Your order #${newOrderRef.id.substring(0, 8).toUpperCase()} has been placed and is now **Pending Verification**. Please wait for confirmation.`);
+                    renderHomeView(); 
 
                 } catch (error) {
                     console.error("Error placing order/stock update:", error);
-                    let displayMessage = `Failed to place order: ${error.message}.`;
+                    let displayMessage = error.message.includes('Insufficient stock') ? error.message : `Failed to place order: ${error.message}.`;
                     
-                    // Check for stock error message from the transaction
-                    if (error.message.includes('Insufficient stock')) {
-                         displayMessage = error.message;
-                    } else if (error.message.includes('permission-denied')) {
-                        displayMessage = "Failed to save order due to security rules or network issues. Please ensure you are logged in.";
-                    }
-                    
-                    // Re-enable button and display error message
                     showModal("Order Error", displayMessage);
                     buyNowBtn.disabled = false;
-                    buyNowBtn.textContent = 'Buy Now';
+                    buyNowBtn.textContent = `Place Order (${CURRENCY_SYMBOL}${finalOrderTotal.toFixed(2)})`;
                 }
             });
         }
 
-        // REMOVED: Notification Functions
-
-
-        // --- Countdown Timer Functions ---
+        // --- Countdown Timer Functions (Unchanged) ---
 
         /**
          * Formats the remaining time until an end date.
-         * @param {Date} endTime - The date and time when the sale ends.
-         * @returns {object} An object with { days, hours, minutes, seconds, total }
          */
         function formatTimeRemaining(endTime) {
             const total = endTime.getTime() - new Date().getTime();
@@ -1977,15 +2346,12 @@
 
         /**
          * Starts a countdown timer for the product detail page.
-         * @param {object} product - The product data object.
-         * @param {Date} endTime - The date object when the sale ends.
          */
         function startDetailCountdown(product, endTime) {
             const timerContainer = document.getElementById('product-sale-timer-container');
             const priceContainer = document.getElementById('price-display-wrapper');
             if (!timerContainer || !priceContainer) return;
 
-            // Clear any existing timer for this product
             if (activeTimers[product.id]) {
                 clearInterval(activeTimers[product.id]);
             }
@@ -1997,16 +2363,13 @@
                     clearInterval(timerInterval);
                     delete activeTimers[product.id];
                     
-                    // Sale has ended. Hide timer.
                     timerContainer.innerHTML = '';
                     
-                    // Revert price
                     const originalPrice = (product.price || 0).toFixed(2);
                     priceContainer.innerHTML = `
                         <span class="text-4xl font-bold text-orange-600">${CURRENCY_SYMBOL}${originalPrice}</span>
                     `;
                 } else {
-                    // Render the timer
                     timerContainer.innerHTML = `
                         <div class="detail-sale-timer">
                             <h3 class="detail-sale-timer-title">
@@ -2039,14 +2402,10 @@
             activeTimers[product.id] = timerInterval;
         }
 
-        // --- END Countdown Timer Functions ---
-
-
-        // --- Carousel Functions ---
+        // --- Carousel Functions (Unchanged) ---
 
         /**
          * Moves the carousel to a specific slide.
-         * @param {number} slideIndex - The index of the slide to move to.
          */
         function moveToSlide(slideIndex) {
             const track = document.querySelector('.carousel-track');
@@ -2055,12 +2414,10 @@
             
             const totalSlides = dots.length;
             
-            // Ensure index is within bounds
             currentSlideIndex = (slideIndex + totalSlides) % totalSlides;
             
             track.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
             
-            // Update dots
             dots.forEach((dot, index) => {
                 dot.classList.toggle('active', index === currentSlideIndex);
             });
@@ -2070,7 +2427,7 @@
          * Starts the automatic carousel timer.
          */
         function startCarousel() {
-            stopCarousel(); // Clear any existing timers
+            stopCarousel(); 
             carouselInterval = setInterval(() => {
                 moveToSlide(currentSlideIndex + 1);
             }, SLIDE_DURATION);
@@ -2095,7 +2452,6 @@
 
             if (!carousel || !track || !slides || !dotsContainer || slides.length === 0) return;
 
-            // Create dots
             dotsContainer.innerHTML = '';
             slides.forEach((_, index) => {
                 const dot = document.createElement('button');
@@ -2104,14 +2460,12 @@
                 dot.setAttribute('aria-label', `Go to slide ${index + 1}`);
                 dot.addEventListener('click', () => {
                     moveToSlide(index);
-                    // Reset timer on manual click
                     stopCarousel();
                     startCarousel();
                 });
                 dotsContainer.appendChild(dot);
             });
 
-            // Add click listeners to slides
             slides.forEach((slide) => {
                 const tag = slide.getAttribute('data-link-tag');
                 if (tag) {
@@ -2121,28 +2475,22 @@
                 }
             });
             
-            // Pause on hold (mousedown / touchstart)
             ['mousedown', 'touchstart'].forEach(event => {
                 carousel.addEventListener(event, () => {
                     stopCarousel();
                 });
             });
             
-            // Resume on release (mouseup / mouseleave / touchend)
             ['mouseup', 'mouseleave', 'touchend'].forEach(event => {
                  carousel.addEventListener(event, () => {
-                    stopCarousel(); // Clear any residual timers
+                    stopCarousel(); 
                     startCarousel();
                 });
             });
 
-            // Start the carousel
-            // Set initial position
             moveToSlide(0);
             startCarousel();
         }
-
-        // --- END Carousel Functions ---
         
         /**
          * Fetches banners from Firestore and populates the carousel.
@@ -2154,13 +2502,12 @@
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 const banners = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Sort by 'order' field in JavaScript
                 banners.sort((a, b) => (a.order || 0) - (b.order || 0));
                 
                 const track = document.querySelector('.carousel-track');
                 if (!track) return;
                 
-                track.innerHTML = ''; // Clear loading/old slides
+                track.innerHTML = ''; 
 
                 if (banners.length > 0) {
                     banners.forEach(banner => {
@@ -2175,7 +2522,6 @@
                         track.appendChild(slide);
                     });
                 } else {
-                    // Show a default placeholder if no banners are in Firestore
                     track.innerHTML = `
                         <div class="carousel-slide" data-link-tag="featured">
                             <img src="https://placehold.co/1200x400/e2e8f0/9ca3af?text=Welcome+to+RareShop" 
@@ -2184,7 +2530,6 @@
                     `;
                 }
                 
-                // IMPORTANT: Initialize the carousel *after* slides are added
                 initializeCarousel();
 
             }, (error) => {
@@ -2198,11 +2543,10 @@
                         </div>
                     `;
                 }
-                // Still init carousel to show the error slide
                 initializeCarousel();
             });
             
-            productListeners.push(unsubscribe); // Add to listeners to be cleared
+            productListeners.push(unsubscribe); 
         }
 
 
@@ -2216,7 +2560,6 @@
             currentCategory = '';
             currentPage = 1;
 
-            // 1. Clone the template content and inject it into the main container
             const template = document.getElementById('home-view-template');
             if (!template) {
                 console.error("Home view template not found!");
@@ -2226,20 +2569,16 @@
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
 
-            // 2. NEW: Fetch Banners (this will also call initializeCarousel)
             fetchBanners();
 
-            // 3. Redefine DOM elements inside the new home view
             const featuredProductsList = document.getElementById('featured-products-list');
             const topSalesList = document.getElementById('top-sales-list');
             const mostPopularList = document.getElementById('most-popular-list');
             
-            // Get "View More" elements
             const featuredViewMore = document.getElementById('featured-products-view-more');
             const topSalesViewMore = document.getElementById('top-sales-view-more');
             const mostPopularViewMore = document.getElementById('most-popular-view-more');
 
-            // 4. Render 6 placeholders AND fetch data
             renderPlaceholderSection(featuredProductsList, featuredViewMore, 6);
             fetchProductsByTag('featured', featuredProductsList, featuredViewMore, "No featured products available.", false);
             
@@ -2249,40 +2588,36 @@
             renderPlaceholderSection(mostPopularList, mostPopularViewMore, 6);
             fetchProductsByTag('most-popular', mostPopularList, mostPopularViewMore, "No popular products available.", false);
             
-            // 5. Attach click handlers to "View More" links
             document.querySelectorAll('.view-more-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const tag = link.getAttribute('data-tag');
                     if (tag) {
-                        showProductListing(tag); // Show 20 boxes for "View More"
+                        showProductListing(tag); 
                     }
                 });
             });
 
-            // 6. Attach click handlers to "Category" links
             document.querySelectorAll('.category-link').forEach(link => {
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const category = link.getAttribute('data-category');
                     if (category) {
-                        showCategoryListing(category); // Show paginated 10 boxes / 2 pages
+                        showCategoryListing(category); 
                     }
                 });
             });
         }
         
         /**
-         * Renders the "View More" product listing page (NOW 20 boxes).
-         * @param {string} tag - The product tag ('featured', 'top-sales', 'most-popular').
+         * Renders the "View More" product listing page.
          */
         function showProductListing(tag) {
             clearListeners();
             appState = 'listing';
             currentTag = tag;
-            currentCategory = ''; // Reset category
+            currentCategory = ''; 
             
-            // 1. Map the tag to a readable title
             const titleMap = {
                 'featured': 'Featured Products',
                 'top-sales': 'Top Sales',
@@ -2290,7 +2625,6 @@
             };
             const title = titleMap[tag] || 'Product Listing';
 
-            // 2. Clone the template and set up the main container
             const template = document.getElementById('listing-view-template');
             if (!template) {
                 console.error("Listing view template not found!");
@@ -2300,31 +2634,25 @@
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
             
-            // 3. Set the dynamic title
             document.getElementById('listing-page-title').textContent = title;
 
-            // 4. Get the grid element
             const listingGrid = document.getElementById('listing-products-grid');
 
-            // 5. Render 20 placeholders AND fetch data
-            renderPlaceholderSection(listingGrid, null, 20); // UPDATED to 20
+            renderPlaceholderSection(listingGrid, null, 20); 
             fetchProductsByTag(tag, listingGrid, null, "No products found for this tag.", true); 
             
-            // 6. Attach back button listener
             document.getElementById('back-to-home-btn-listing').addEventListener('click', renderHomeView);
         }
 
         /**
-         * Renders the paginated Category listing page (NOW 10 boxes / 2 pages).
-         * @param {string} category - The category to filter by.
+         * Renders the paginated Category listing page.
          */
         function showCategoryListing(category) {
             clearListeners();
             appState = 'category';
             currentCategory = category;
-            currentPage = 1; // Always start on page 1
+            currentPage = 1; 
 
-            // 1. Clone the template
             const template = document.getElementById('category-listing-template');
             if (!template) {
                 console.error("Category listing template not found!");
@@ -2334,16 +2662,12 @@
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
 
-            // 2. Set dynamic title
             document.getElementById('category-page-title').textContent = category;
 
-            // 3. Render placeholders and fetch data for page 1
             fetchProductsByCategory(currentCategory, currentPage, categoryItemsPerPage);
 
-            // 4. Attach back button listener
             document.getElementById('back-to-home-btn-category').addEventListener('click', renderHomeView);
             
-            // 5. Attach pagination click listeners
             document.getElementById('prev-page-btn').addEventListener('click', () => {
                  if (currentPage > 1) {
                     currentPage--;
@@ -2352,24 +2676,16 @@
             });
             
             document.getElementById('next-page-btn').addEventListener('click', () => {
-                // The 'disabled' state of the button, managed by fetchProductsByCategory,
-                // will prevent this from running if on the last page.
                 currentPage++;
                 fetchProductsByCategory(currentCategory, currentPage, categoryItemsPerPage);
             });
         }
 
         /**
-         * NEW: Fetches products based on a tag and renders them.
-         * @param {string} tag - The tag to filter by ('featured', 'top-sales', 'most-popular').
-         * @param {HTMLElement} container - The DOM element to render into.
-         * @param {HTMLElement | null} viewMoreElement - The 'View More' link (for home page).
-         * @param {string} errorMsg - Message if no products are found.
-         * @param {boolean} isListingPage - True if this is the full listing page.
+         * Fetches products based on a tag and renders them.
          */
         function fetchProductsByTag(tag, container, viewMoreElement, errorMsg, isListingPage = false) {
             if (!db) return;
-            // Query for products where the 'tag' array contains the specific tag
             const q = query(collection(db, PRODUCTS_COLLECTION_PATH), where("tag", "array-contains", tag));
             
             const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -2383,10 +2699,7 @@
         }
 
         /**
-         * NEW: Fetches products based on category with pagination.
-         * @param {string} category - The category to filter by.
-         * @param {number} page - The current page number.
-         * @param {number} itemsPerPage - Number of items per page.
+         * Fetches products based on category with pagination.
          */
         function fetchProductsByCategory(category, page, itemsPerPage) {
             if (!db) return;
@@ -2400,23 +2713,20 @@
                  return;
             }
             
-            renderPlaceholderSection(grid, null, itemsPerPage); // Show placeholders while loading
+            renderPlaceholderSection(grid, null, itemsPerPage); 
 
             const q = query(collection(db, PRODUCTS_COLLECTION_PATH), where("category", "==", category));
             
             const unsubscribe = onSnapshot(q, (snapshot) => {
                 let products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                // Manual pagination
                 const totalProducts = products.length;
-                const totalPages = Math.ceil(totalProducts / itemsPerPage) || 1; // At least 1 page
+                const totalPages = Math.ceil(totalProducts / itemsPerPage) || 1; 
                 
-                // Update pagination UI
                 pageInfo.textContent = `Page ${page} of ${totalPages}`;
                 prevBtn.disabled = (page === 1);
                 nextBtn.disabled = (page === totalPages);
 
-                // Slice products for the current page
                 const startIndex = (page - 1) * itemsPerPage;
                 const endIndex = startIndex + itemsPerPage;
                 const pagedProducts = products.slice(startIndex, endIndex);
@@ -2436,7 +2746,6 @@
          * Generates the HTML for a single, empty product card placeholder.
          */
         function renderPlaceholderCard() {
-            // Added product-card-animation and transition-all duration-300 for the hover effect
             return `
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden group cursor-default animate-pulse product-card-animation transition-all duration-300">
                     <div class="block">
@@ -2455,9 +2764,6 @@
 
         /**
          * Renders a specific number of placeholder cards into a container.
-         * @param {HTMLElement} container - The DOM element to render into.
-         * @param {HTMLElement | null} viewMoreElement - The 'View More' link (null if not used).
-         * @param {number} count - The number of placeholders to render.
          */
         function renderPlaceholderSection(container, viewMoreElement, count) {
             if (!container) {
@@ -2468,12 +2774,10 @@
             container.innerHTML = '';
             let html = '';
             for (let i = 0; i < count; i++) {
-                // Added inline style to stagger the product card entrance (optional)
                 html += `<div style="animation: fadeIn 0.4s ease-out forwards; animation-delay: ${i * 0.05}s; opacity: 0;">${renderPlaceholderCard()}</div>`;
             }
             container.innerHTML = html;
             
-            // Check if viewMoreElement is a truthy DOM element with a classList property
             if (viewMoreElement && viewMoreElement.classList) {
                 viewMoreElement.classList.remove('hidden');
             }
@@ -2481,11 +2785,6 @@
 
         /**
          * Renders a list of products into a specified container (Handles Real Data).
-         * @param {Array} products - The list of product data.
-         * @param {HTMLElement} container - The DOM element to render into.
-         * @param {HTMLElement | null} viewMoreElement - The 'View More' link element (only for home page lists).
-         * @param {string} errorMsg - Message to show if no products are found.
-         * @param {boolean} isListingPage - True if rendering the full listing page.
          */
         function renderProducts(products, container, viewMoreElement, errorMsg, isListingPage = false) {
             
@@ -2493,20 +2792,16 @@
                 console.error("Render container not found.");
                 return; 
             }
-            // Clear existing content
             container.innerHTML = ''; 
 
             if (!products || products.length === 0) {
-                // Show an error/empty message instead of product cards
                 container.innerHTML = `<p class="col-span-full p-8 text-center text-gray-500">${errorMsg}</p>`;
                 if (viewMoreElement && viewMoreElement.classList) viewMoreElement.classList.add('hidden');
                 return;
             }
 
-            // Decide how many to show (max 6 on home page, all on listing page)
             const productsToShow = isListingPage ? products : products.slice(0, 6);
             
-            // Show/Hide View More link based on total product count (only relevant for home page lists)
             if (viewMoreElement && viewMoreElement.classList) {
                 if (products.length > 6) {
                     viewMoreElement.classList.remove('hidden');
@@ -2518,23 +2813,19 @@
 
             productsToShow.forEach(product => {
                 const productEl = document.createElement('div');
-                // Added product-card-animation and transition-all duration-300
                 productEl.className = 'bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden group transition-all duration-300 hover:shadow-md cursor-pointer product-card-animation';
                 
-                // --- Price Logic (MODIFIED for Sale Timer) ---
                 const originalPrice = (product.price || 0).toFixed(2);
                 const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
                 
-                // NEW: Check for active sale
                 const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
                 const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
                 
-                // NEW: Check for stock
+                const currentStock = product.stock || 0;
                 const isOutOfStock = (product.stock || 0) <= 0;
 
                 let priceHtml;
                 if (isSaleActive) {
-                    // Changed to flex-col (column direction) to stack prices vertically
                     priceHtml = `
                         <div class="flex flex-col items-start space-y-0.5 mt-1">
                             <span class="original-price">${CURRENCY_SYMBOL}${originalPrice}</span>
@@ -2548,25 +2839,20 @@
                 if (isOutOfStock) {
                      priceHtml = `<p class="text-base sm:text-lg font-bold text-red-600">Out of Stock</p>`;
                 }
-                // --- End Price Logic ---
 
-                // Add click handler for the detail page
                 productEl.addEventListener('click', (e) => {
                     e.preventDefault();
                     showProductDetail(product.id);
                 });
                 
-                // Check if 'tag' is an array and join it
                 const productTags = Array.isArray(product.tag) ? product.tag : [];
                 const tagHtml = productTags.map(tag => 
                     `<span class="inline-block bg-orange-100 text-orange-600 text-xs font-medium px-2.5 py-0.5 rounded-full mt-2">${tag.toUpperCase().replace('-', ' ')}</span>`
                 ).join(' ');
 
 
-                // --- NEW: Image Hover Logic ---
                 const primaryImage = product.image || 'https://placehold.co/400x300/e2e8f0/9ca3af?text=RareShop+Product';
                 
-                // Conditionally create the secondary image HTML
                 const secondaryImageHtml = product.image2 ? `
                     <img 
                         src="${product.image2}" 
@@ -2575,7 +2861,6 @@
                         onerror="this.onerror=null;this.style.display='none';"
                     >
                 ` : '';
-                // --- END Image Hover Logic ---
 
 
                 productEl.innerHTML = `
@@ -2605,10 +2890,9 @@
          * Renders the product detail page for a given product ID.
          */
         async function showProductDetail(productId) {
-            clearListeners(); // Stop home view listeners
+            clearListeners(); 
             appState = 'detail';
             
-            // 1. Clone the template
             const template = document.getElementById('detail-view-template');
             if (!template) {
                 console.error("Detail view template not found!");
@@ -2630,7 +2914,6 @@
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
-                    // Use onSnapshot on the single document for real-time updates
                     const unsubscribe = onSnapshot(docRef, (doc) => {
                         if (doc.exists()) {
                             renderDetailPage({ id: doc.id, ...doc.data() });
@@ -2658,11 +2941,10 @@
         function renderDetailPage(product) {
             const details = product.details || {};
             const detailWrapper = document.getElementById('detail-content-wrapper');
-            if (!detailWrapper) return; // Guard clause
+            if (!detailWrapper) return; 
             
-            // --- NEW: Helper functions to build spec table ---
             function createSpecRow(label, value) {
-                if (!value || value.trim() === '') return ''; // Don't render empty rows
+                if (!value || value.trim() === '') return ''; 
                 return `<tr class="border-b border-gray-100">
                             <td class="py-2 px-4 bg-gray-50 text-sm font-medium text-gray-600 w-1/3">${label}</td>
                             <td class="py-2 px-4 text-sm text-gray-800 break-words">${value}</td>
@@ -2673,9 +2955,7 @@
                             <th class="py-2 px-4 text-left text-sm font-semibold text-gray-700" colspan="2">${title}</th>
                         </tr>`;
             }
-            // --- END Helper functions ---
 
-            // --- NEW: Build Spec Table HTML (same as before) ---
             const specs = details.specs || {};
             const proc = specs.processor || {};
             const mem = specs.memory || {};
@@ -2731,17 +3011,13 @@
             specsHtml += createSpecRow("Wireless/Wifi", feat.wifi);
             
             specsHtml += '</table>';
-            // --- END Build Spec Table HTML ---
                 
-            // --- Price Logic for Detail Page (MODIFIED for Sale Timer) ---
             const originalPrice = (product.price || 0).toFixed(2);
             const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
             
-            // NEW: Check for active sale
             const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
             const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
             
-            // NEW: Stock Check
             const currentStock = product.stock || 0;
             const isOutOfStock = currentStock <= 0;
 
@@ -2758,10 +3034,7 @@
                     <span class="text-4xl font-bold text-orange-600">${CURRENCY_SYMBOL}${originalPrice}</span>
                 `;
             }
-            // --- End Price Logic ---
 
-            // --- NEW: Thumbnail HTML Logic ---
-            // Collect all valid images
             const images = [product.image, product.image2, product.image3, product.image4, product.image5].filter(Boolean);
             
             const primaryImage = images.length > 0 ? images[0] : 'https://placehold.co/800x800/e2e8f0/9ca3af?text=Product+Image';
@@ -2779,7 +3052,6 @@
                     `;
                 });
             }
-            // --- END Thumbnail HTML Logic ---
 
 
             detailWrapper.innerHTML = `
@@ -2839,9 +3111,7 @@
                 </div>
             `;
             
-            // --- NEW: Attach Cart/Buy Now Listeners ---
             document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
-                // Pre-check stock again to handle fast user clicks
                 if (isOutOfStock) return; 
                 
                 const productId = e.currentTarget.getAttribute('data-product-id');
@@ -2849,7 +3119,6 @@
                 const productSnap = await getDoc(productRef);
                 
                 if (productSnap.exists()) {
-                    // Pass the *full* product data, including the stock
                     await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false, true);
                 } else {
                     showModal("Error", "Product data missing for cart operation.");
@@ -2857,7 +3126,6 @@
             });
 
             document.getElementById('buy-now-btn').addEventListener('click', async (e) => {
-                 // Pre-check stock again to handle fast user clicks
                 if (isOutOfStock) return;
                 
                 const productId = e.currentTarget.getAttribute('data-product-id');
@@ -2865,39 +3133,28 @@
                 const productSnap = await getDoc(productRef);
                 
                 if (productSnap.exists()) {
-                    // 1. Add item to cart (or update quantity)
-                    // Pass the *full* product data, including the stock
                     await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false, false);
-                    
-                    // 2. Clear current cart listeners (except the main header listener)
                     clearListeners();
-                    
-                    // 3. Navigate to checkout (this handles the next snapshot processing after cart update)
                     showCheckoutView(); 
 
                 } else {
                     showModal("Error", "Product data missing for immediate purchase.");
                 }
             });
-            // --- END Cart/Buy Now Listeners ---
 
-
-            // --- NEW: Attach Event Listeners for Thumbnails ---
             document.querySelectorAll('.thumbnail-img').forEach(img => {
                 img.addEventListener('click', () => {
                     const mainImage = document.getElementById('main-detail-image');
                     const newSrc = img.getAttribute('data-src');
                     
                     if (mainImage && mainImage.src !== newSrc) {
-                        // Fade out, change src, fade in
                         mainImage.style.opacity = 0;
                         setTimeout(() => {
                             mainImage.src = newSrc;
                             mainImage.style.opacity = 1;
-                        }, 300); // Match transition duration
+                        }, 300); 
                     }
                     
-                    // Update active border
                     document.querySelectorAll('.thumbnail-img').forEach(thumb => {
                         thumb.classList.remove('border-orange-500');
                         thumb.classList.add('border-transparent');
@@ -2906,17 +3163,12 @@
                     img.classList.remove('border-transparent');
                 });
             });
-            // --- END ---
             
-            // --- NEW: Start Countdown Timer if Sale is Active ---
             if (isSaleActive) {
                 startDetailCountdown(product, saleEndTime);
             }
-            // --- END ---
 
-            // Re-attach back button listener
             document.getElementById('back-to-list-btn-detail').addEventListener('click', () => {
-                // Navigate back based on the previous state
                 if (appState === 'detail') {
                     if (currentCategory) {
                         showCategoryListing(currentCategory);
@@ -2934,9 +3186,6 @@
 
         // --- Page View Functions (Policies, FAQ, About) ---
 
-        /**
-         * NEW: Renders the FAQ view.
-         */
         function renderFaqView() {
             clearListeners();
             appState = 'faq';
@@ -2967,9 +3216,6 @@
             });
         }
 
-        /**
-         * NEW: Renders the Shipping Policy view.
-         */
         function renderShippingPolicyView() {
             clearListeners();
             appState = 'shipping';
@@ -2986,9 +3232,6 @@
             document.getElementById('back-to-home-btn-shipping').addEventListener('click', renderHomeView);
         }
 
-        /**
-         * NEW: Renders the Return Policy view.
-         */
         function renderReturnPolicyView() {
             clearListeners();
             appState = 'return';
@@ -3005,9 +3248,6 @@
             document.getElementById('back-to-home-btn-return').addEventListener('click', renderHomeView);
         }
 
-        /**
-         * NEW: Renders the Terms of Service view.
-         */
         function renderTosView() {
             clearListeners();
             appState = 'tos';
@@ -3024,9 +3264,6 @@
             document.getElementById('back-to-home-btn-tos').addEventListener('click', renderHomeView);
         }
 
-        /**
-         * NEW: Renders the About Us view.
-         */
         function renderAboutView() {
             clearListeners();
             appState = 'about';
@@ -3056,18 +3293,12 @@
 
         // --- Auth Modal and Firebase Auth Handlers (UPDATED) ---
         
-        /**
-         * Shows the Auth modal with the specified active tab.
-         * @param {string} tab - 'login' or 'signup'
-         */
         function showAuthModal(tab = 'login') {
-            // Clear any previous error messages
             loginErrorMsg.classList.add('hidden');
             signupErrorMsg.classList.add('hidden');
             loginForm.reset();
             signupForm.reset();
             
-            // Set active tab
             if (tab === 'signup') {
                 authModalTitle.textContent = 'Create Account';
                 tabSignup.classList.add('active');
@@ -3085,18 +3316,10 @@
             authModal.classList.remove('hidden');
         }
 
-        /**
-         * Hides the Auth modal.
-         */
         function hideAuthModal() {
             authModal.classList.add('hidden');
         }
 
-        /**
-         * Handles user login via email and password.
-         * @param {string} email 
-         * @param {string} password 
-         */
         async function handleLogin(email, password) {
             loginErrorMsg.classList.add('hidden');
             const submitBtn = document.getElementById('login-submit-btn');
@@ -3104,10 +3327,8 @@
             submitBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Signing In...';
             
             try {
-                // Sign in with email and password
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                // Auth state listener handles setting loggedInUser, userId, and updating UI
                 hideAuthModal();
                 showModal("Success", `Welcome back, ${email}!`);
 
@@ -3128,11 +3349,6 @@
             }
         }
 
-        /**
-         * Handles user registration via email and password.
-         * @param {string} email 
-         * @param {string} password 
-         */
         async function handleSignUp(email, password) {
             signupErrorMsg.classList.add('hidden');
             const submitBtn = document.getElementById('signup-submit-btn');
@@ -3140,10 +3356,8 @@
             submitBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Creating Account...';
             
             try {
-                // Create user with email and password
                 await createUserWithEmailAndPassword(auth, email, password);
                 
-                // Auth state listener handles setting loggedInUser, userId, and updating UI
                 hideAuthModal();
                 showModal("Success!", `Account created for ${email}. Welcome to RareShop!`);
 
@@ -3166,24 +3380,18 @@
             }
         }
         
-        /**
-         * NEW: Handles Google Sign-in via popup.
-         */
         async function handleGoogleSignIn() {
-            // Check if the element exists before using it
             const googleBtn = document.getElementById('google-sign-in-btn');
             if (googleBtn) {
                  googleBtn.disabled = true;
                  googleBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Connecting...';
             }
             
-            hideAuthModal(); // Hide modal immediately to prevent blocking the popup
+            hideAuthModal(); 
             try {
                 const provider = new GoogleAuthProvider();
-                // signInWithPopup initiates the Google login flow
                 await signInWithPopup(auth, provider);
                 
-                // Auth state listener handles setting loggedInUser, userId, and updating UI
                 showModal("Success!", `Welcome to RareShop!`);
 
             } catch (error) {
@@ -3201,7 +3409,6 @@
                 console.error("Google Sign-in Error:", error);
                 showModal("Sign-in Error", message);
             } finally {
-                // Re-enable the button if it exists
                 if (googleBtn) {
                     googleBtn.disabled = false;
                     googleBtn.innerHTML = '<img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762591113/images_1_dxmcrp.png" alt="Google logo" class="w-5 h-5 mr-3">Sign in with Google';
@@ -3209,47 +3416,35 @@
             }
         }
         
-        /**
-         * Handles user logout.
-         */
         async function handleLogout() {
             try {
                 await signOut(auth);
                 showModal("Logged Out", "You have been successfully logged out.");
-                // onAuthStateChanged will handle UI cleanup
             } catch (error) {
                 console.error("Logout Error:", error);
                 showModal("Logout Error", "Could not log out. Please try again.");
             }
         }
 
-        /**
-         * Renders the dynamic content of the Auth Status container in the header.
-         * @param {object | null} user - The Firebase User object or null.
-         */
         function renderAuthStatus(user) {
-            authStatusContainer.innerHTML = ''; // Clear existing content
+            authStatusContainer.innerHTML = ''; 
             
             if (user && user.email) {
-                // Logged In: Show Email and Logout button
                 const emailSnippet = user.email.length > 20 ? user.email.substring(0, 20) + '...' : user.email;
                 authStatusContainer.innerHTML = `
-                    <span class="text-sm font-medium text-gray-700 hidden sm:inline" title="${user.email}">${emailSnippet}</span>
-                    <button id="header-logout-btn" class="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-200 transition-colors">
+                    <span class="text-sm font-medium text-gray-700 hidden sm:inline dark:text-gray-300" title="${user.email}">${emailSnippet}</span>
+                    <button id="header-logout-btn" class="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
                         Logout
                     </button>
                 `;
-                // Attach logout listener
                 document.getElementById('header-logout-btn').addEventListener('click', handleLogout);
 
             } else {
-                // Logged Out (or Anonymous): Show Login and Sign Up links
                 authStatusContainer.innerHTML = `
-                    <a href="#" id="login-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium">Login</a>
+                    <a href="#" id="login-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium dark:text-gray-300 dark:hover:text-orange-500">Login</a>
                     <span class="text-gray-300">|</span>
-                    <a href="#" id="signup-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium">Sign Up</a>
+                    <a href="#" id="signup-link" class="text-gray-600 hover:text-orange-600 text-sm font-medium dark:text-gray-300 dark:hover:text-orange-500">Sign Up</a>
                 `;
-                // Attach modal handlers to the new links
                 document.getElementById('login-link').addEventListener('click', (e) => {
                     e.preventDefault();
                     showAuthModal('login');
@@ -3272,14 +3467,15 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                setLogLevel('debug'); // Enable debug logging for Firebase
+                setLogLevel('debug'); 
+
+                // 📢 NEW: Initialize Supabase after Firebase
+                initializeSupabase();
 
                 // 2. Initial Auth Setup (Anonymously or with custom token)
-                // This call ensures the initial connection is made
                 if (authTokenFromEnv) {
                     await signInWithCustomToken(auth, authTokenFromEnv);
                 } else {
-                    // Sign in anonymously if no custom token is provided
                     await signInAnonymously(auth);
                 }
 
@@ -3287,27 +3483,18 @@
                 onAuthStateChanged(auth, (user) => {
                     loggedInUser = user;
                     
-                    // FIX: Ensure userId always uses the UID if available, otherwise the random fallback.
-                    // This is used for paths where the UID isn't available (like anonymous cart data)
                     userId = user ? user.uid : (userIdFromEnv || crypto.randomUUID());
                     
-                    // Display UID (first 8 chars)
                     userIdDisplay.textContent = `User ID (for Firestore Path): ${userId.substring(0, 8)}... | App ID: ${appId}`;
                     
-                    // Update Header UI
                     renderAuthStatus(user);
 
-                    // 4. Start listeners ONLY if a valid UID is available
                     if (user && user.uid) {
                         listenToCart();
-                        // REMOVED: listenToNotifications(); 
                     } else {
-                        // For unauthenticated/anonymous users, clear cart and notifications UI
                          cartItemCountEl.textContent = '0';
-                         // REMOVED: notifications cleanup
                     }
                     
-                    // 5. Render the initial view
                     if (appState === 'home') {
                         renderHomeView();
                     }
@@ -3333,7 +3520,6 @@
                     handleSignUp(email, password);
                 });
                 
-                // NEW: Google Sign-in Listener
                 googleSignInBtn.addEventListener('click', handleGoogleSignIn);
 
             } catch (error) {
@@ -3348,19 +3534,21 @@
             document.getElementById('alertModal').classList.add('hidden');
         });
         
-        // Logo always takes us home
         document.getElementById('logo-link').addEventListener('click', (e) => {
             e.preventDefault();
             renderHomeView();
         });
         
-        // Cart link shows the cart view
         document.getElementById('cart-link').addEventListener('click', (e) => {
             e.preventDefault();
             renderCartView();
         });
+
+        document.getElementById('sidebar-track-order-link').addEventListener('click', (e) => {
+            e.preventDefault();
+            showTrackOrderView();
+        });
         
-        // Footer links
         document.getElementById('footer-home-link').addEventListener('click', (e) => {
             e.preventDefault();
             renderHomeView();
