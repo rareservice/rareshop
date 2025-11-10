@@ -412,14 +412,14 @@
                         >
                         <h3 class="text-lg font-semibold text-gray-900 mt-auto">Phones</h3>
                     </a>
-                    <a href="#" data-category="TV" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
+                    <a href="#" data-category="TVs" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
                         <img 
                             src="https://res.cloudinary.com/dkesvcbnp/image/upload/v1762267796/images_4_pfsuvq.jpg" 
                             alt="TV" 
                             class="h-24 w-full object-contain mb-4 rounded-md"
                             onerror="this.onerror=null;this.src='https://placehold.co/150x100/e2e8f0/9ca3af?text=TV';"
                         >
-                        <h3 class="text-lg font-semibold text-gray-900 mt-auto">TV</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mt-auto">TVs</h3>
                     </a>
                     <a href="#" data-category="Computers" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
                         <img 
@@ -697,7 +697,7 @@
             </div>
         </div>
     </template>
-    
+
     <template id="faq-view-template">
         <div class="max-w-4xl mx-auto">
             <button id="back-to-home-btn-faq" class="mb-8 flex items-center text-gray-600 hover:text-orange-600 font-medium transition-colors">
@@ -1944,9 +1944,15 @@
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-semibold text-gray-900 truncate">${item.name}</h3>
                             <p class="text-sm text-gray-500">${CURRENCY_SYMBOL}${price.toFixed(2)} x ${item.quantity}</p>
-                            <p class="text-base font-bold text-orange-600">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}</p>
-                        </div>
+                            <p class="text-base font-bold text-orange-600">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}`;
                         
+                        if (item.originalPrice && item.originalPrice > item.price) {
+                            itemEl.querySelector('p:last-child').innerHTML += ` <span class="original-price text-sm ml-2">${CURRENCY_SYMBOL}${item.originalPrice.toFixed(2)}</span>`;
+                        }
+                        
+                        itemEl.querySelector('p:last-child').innerHTML += `</p></div>`;
+                        
+                        itemEl.innerHTML += `
                         <div class="flex items-center space-x-2 flex-shrink-0">
                             <button data-id="${item.id}" data-action="decrease" class="cart-quantity-btn p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors">
                                 <i class="ph ph-minus text-lg"></i>
@@ -2935,6 +2941,136 @@
             }
         }
         
+        // --- Spec Generation Helpers (NEW/UPDATED) ---
+
+        /**
+         * Helper to create a single row for the specs table.
+         */
+        function createSpecRow(label, value) {
+            if (!value || value.trim() === '') return ''; 
+            return `<tr class="border-b border-gray-100">
+                        <td class="py-2 px-4 bg-gray-50 text-sm font-medium text-gray-600 w-1/3">${label}</td>
+                        <td class="py-2 px-4 text-sm text-gray-800 break-words">${value}</td>
+                    </tr>`;
+        }
+        
+        /**
+         * Helper to create a section header for the specs table.
+         */
+        function createSpecHeader(title) {
+            return `<tr class="bg-gray-200">
+                        <th class="py-2 px-4 text-left text-sm font-semibold text-gray-700" colspan="2">${title}</th>
+                    </tr>`;
+        }
+        
+        /**
+         * Generates HTML for Laptop/Computer specifications (old structure but uses flat keys).
+         */
+        function generateLaptopSpecsHtml(specs) {
+            let html = '<table class="w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">';
+            
+            html += createSpecHeader("General");
+            html += createSpecRow("Brand", specs.brand);
+            html += createSpecRow("Warranty", specs.warranty);
+            html += createSpecRow("Condition", specs.condition);
+            html += createSpecRow("Operating System", specs.os);
+            html += createSpecRow("Weight", specs.weight);
+            
+            html += createSpecHeader("Processor");
+            html += createSpecRow("Generation", specs.generation);
+            html += createSpecRow("Processor Type", specs.processorType);
+            html += createSpecRow("Processor Speed", specs.processorSpeed);
+            
+            html += createSpecHeader("Memory & Storage");
+            html += createSpecRow("Installed RAM", specs.ramInstalled);
+            html += createSpecRow("RAM Type", specs.ramType);
+            html += createSpecRow("Hard Drive", specs.hdd);
+            html += createSpecRow("Hard Drive Speed", specs.hddSpeed);
+            html += createSpecRow("SSD", specs.ssd);
+            html += createSpecRow("Storage Type", specs.driveType);
+            html += createSpecRow("Optical Drive", specs.optical);
+            html += createSpecRow("Optical Drive Type", specs.opticalType);
+            
+            html += createSpecHeader("Graphics & Display");
+            html += createSpecRow("Graphics Series", specs.graphicsSeries);
+            html += createSpecRow("Dedicated Graphics", specs.graphicsDedicated);
+            html += createSpecRow("Graphics Memory", specs.graphicsMemory);
+            html += createSpecRow("Graphics Memory Type", specs.graphicsMemoryType);
+            html += createSpecRow("Switchable Graphics", specs.graphicsSwitchable);
+            html += createSpecRow("Graphics Processor", specs.graphicsProcessor);
+            html += createSpecRow("Screen Size", specs.displaySize);
+            html += createSpecRow("Screen Surface", specs.displaySurface);
+            html += createSpecRow("Screen Resolution", specs.displayResolution);
+            html += createSpecRow("Touchscreen", specs.displayTouch);
+            html += createSpecRow("Backlight", specs.displayBacklight);
+            
+            html += '</table>';
+            return html;
+        }
+
+        /**
+         * Generates HTML for Phone specifications (using flat keys from the Admin Dashboard).
+         */
+        function generatePhoneSpecsHtml(specs) {
+            let html = '<table class="w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">';
+            
+            html += createSpecHeader("📱 Phone Specifications");
+            html += createSpecRow("Brand", specs.brand);
+            html += createSpecRow("Model", specs.model);
+            html += createSpecRow("Display", specs.display);
+            html += createSpecRow("Processor / Chipset", specs.processor);
+            html += createSpecRow("RAM", specs.ram);
+            html += createSpecRow("Storage", specs.storage);
+            html += createSpecRow("Rear Camera", specs.rearCamera);
+            html += createSpecRow("Front Camera", specs.frontCamera);
+            html += createSpecRow("Battery", specs.battery);
+            html += createSpecRow("Operating System", specs.os);
+            html += createSpecRow("SIM Type", specs.simType);
+            html += createSpecRow("Network", specs.network);
+            html += createSpecRow("Build / Body Material", specs.build);
+            html += createSpecRow("Dimensions & Weight", specs.dimensions);
+            html += createSpecRow("Colors Available", specs.colors);
+            html += createSpecRow("Sensors", specs.sensors);
+            html += createSpecRow("Connectivity", specs.connectivity);
+            html += createSpecRow("Audio", specs.audio);
+            html += createSpecRow("Charging", specs.charging);
+            html += createSpecRow("Warranty", specs.warranty);
+
+            html += '</table>';
+            return html;
+        }
+
+        /**
+         * Generates HTML for TV specifications (using flat keys from the Admin Dashboard).
+         */
+        function generateTvSpecsHtml(specs) {
+            let html = '<table class="w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">';
+            
+            html += createSpecHeader("📺 TV Specifications");
+            html += createSpecRow("Brand", specs.brand);
+            html += createSpecRow("Model", specs.model);
+            html += createSpecRow("Display Size", specs.displaySize);
+            html += createSpecRow("Display Type", specs.displayType);
+            html += createSpecRow("Resolution", specs.resolution);
+            html += createSpecRow("Refresh Rate", specs.refreshRate);
+            html += createSpecRow("Processor", specs.processor);
+            html += createSpecRow("RAM", specs.ram);
+            html += createSpecRow("Storage", specs.storage);
+            html += createSpecRow("Operating System / Platform", specs.os);
+            html += createSpecRow("Smart Features", specs.smartFeatures);
+            html += createSpecRow("Connectivity", specs.connectivity);
+            html += createSpecRow("Audio", specs.audio);
+            html += createSpecRow("Ports", specs.ports);
+            html += createSpecRow("Power Consumption", specs.power);
+            html += createSpecRow("Dimensions & Weight", specs.dimensions);
+            html += createSpecRow("Build / Design", specs.build);
+            html += createSpecRow("Remote Type", specs.remote);
+            html += createSpecRow("Warranty", specs.warranty);
+
+            html += '</table>';
+            return html;
+        }
+
         /**
          * Generates the HTML for the product detail page, handling discount prices and PKR currency.
          */
@@ -2943,74 +3079,21 @@
             const detailWrapper = document.getElementById('detail-content-wrapper');
             if (!detailWrapper) return; 
             
-            function createSpecRow(label, value) {
-                if (!value || value.trim() === '') return ''; 
-                return `<tr class="border-b border-gray-100">
-                            <td class="py-2 px-4 bg-gray-50 text-sm font-medium text-gray-600 w-1/3">${label}</td>
-                            <td class="py-2 px-4 text-sm text-gray-800 break-words">${value}</td>
-                        </tr>`;
-            }
-            function createSpecHeader(title) {
-                return `<tr class="bg-gray-200">
-                            <th class="py-2 px-4 text-left text-sm font-semibold text-gray-700" colspan="2">${title}</th>
-                        </tr>`;
-            }
-
             const specs = details.specs || {};
-            const proc = specs.processor || {};
-            const mem = specs.memory || {};
-            const graph = specs.graphics || {};
-            const disp = specs.display || {};
-            const feat = specs.features || {};
+            const category = product.category;
 
-            let specsHtml = '<table class="w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">';
-            
-            specsHtml += createSpecHeader("General");
-            specsHtml += createSpecRow("Brand", specs.brand);
-            specsHtml += createSpecRow("Warranty", specs.warranty);
-            specsHtml += createSpecRow("Condition", specs.condition);
-            specsHtml += createSpecRow("Operating System", specs.os);
-            specsHtml += createSpecRow("Weight", specs.weight);
-            
-            specsHtml += createSpecHeader("Processor");
-            specsHtml += createSpecRow("Generation", proc.generation);
-            specsHtml += createSpecRow("Processor Type", proc.type);
-            specsHtml += createSpecRow("Processor Speed", proc.speed);
-            
-            specsHtml += createSpecHeader("Memory & Storage");
-            specsHtml += createSpecRow("Installed RAM", mem.ram);
-            specsHtml += createSpecRow("RAM Type", mem.ramType);
-            specsHtml += createSpecRow("Hard Drive", mem.hdd);
-            specsHtml += createSpecRow("Hard Drive Speed", mem.hddSpeed);
-            specsHtml += createSpecRow("SSD", mem.ssd);
-            specsHtml += createSpecRow("Storage Type", mem.driveType);
-            specsHtml += createSpecRow("Optical Drive", mem.optical);
-            specsHtml += createSpecRow("Optical Drive Type", mem.opticalType);
-            
-            specsHtml += createSpecHeader("Graphics & Display");
-            specsHtml += createSpecRow("Graphics Series", graph.series);
-            specsHtml += createSpecRow("Dedicated Graphics", graph.dedicated);
-            specsHtml += createSpecRow("Graphics Memory", graph.memory);
-            specsHtml += createSpecRow("Graphics Memory Type", graph.memoryType);
-            specsHtml += createSpecRow("Switchable Graphics", graph.switchable);
-            specsHtml += createSpecRow("Graphics Processor", graph.processor);
-            specsHtml += createSpecRow("Screen Size", disp.size);
-            specsHtml += createSpecRow("Screen Surface", disp.surface);
-            specsHtml += createSpecRow("Screen Resolution", disp.resolution);
-            specsHtml += createSpecRow("Touchscreen", disp.touch);
-            specsHtml += createSpecRow("Backlight", disp.backlight);
-            
-            specsHtml += createSpecHeader("Features & Connectivity");
-            specsHtml += createSpecRow("Color", feat.color);
-            specsHtml += createSpecRow("RAM (Form)", feat.ram); 
-            specsHtml += createSpecRow("Fingerprint Reader", feat.fingerprint);
-            specsHtml += createSpecRow("Numeric Keyboard", feat.numKeyboard);
-            specsHtml += createSpecRow("Backlit Keyboard", feat.backlitKeyboard);
-            specsHtml += createSpecRow("Bluetooth", feat.bluetooth);
-            specsHtml += createSpecRow("LAN", feat.lan);
-            specsHtml += createSpecRow("Wireless/Wifi", feat.wifi);
-            
-            specsHtml += '</table>';
+            let specsHtml = '';
+
+            if (['Laptops', 'Computers'].includes(category)) {
+                specsHtml = generateLaptopSpecsHtml(specs);
+            } else if (category === 'Phones') {
+                specsHtml = generatePhoneSpecsHtml(specs);
+            } else if (category === 'TVs') {
+                specsHtml = generateTvSpecsHtml(specs);
+            } else {
+                 specsHtml = `<p class="text-red-500">No specific specification template found for category: ${category}</p>`;
+            }
+
                 
             const originalPrice = (product.price || 0).toFixed(2);
             const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
