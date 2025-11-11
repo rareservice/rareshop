@@ -412,14 +412,14 @@
                         >
                         <h3 class="text-lg font-semibold text-gray-900 mt-auto">Phones</h3>
                     </a>
-                    <a href="#" data-category="TVs" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
+                    <a href="#" data-category="TV" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
                         <img 
                             src="https://res.cloudinary.com/dkesvcbnp/image/upload/v1762267796/images_4_pfsuvq.jpg" 
                             alt="TV" 
                             class="h-24 w-full object-contain mb-4 rounded-md"
                             onerror="this.onerror=null;this.src='https://placehold.co/150x100/e2e8f0/9ca3af?text=TV';"
                         >
-                        <h3 class="text-lg font-semibold text-gray-900 mt-auto">TVs</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 mt-auto">TV</h3>
                     </a>
                     <a href="#" data-category="Computers" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
                         <img 
@@ -697,7 +697,7 @@
             </div>
         </div>
     </template>
-
+    
     <template id="faq-view-template">
         <div class="max-w-4xl mx-auto">
             <button id="back-to-home-btn-faq" class="mb-8 flex items-center text-gray-600 hover:text-orange-600 font-medium transition-colors">
@@ -1373,6 +1373,13 @@
         }
         
         // --- Sidebar Logic ---
+        
+        /**
+         * Ensures body scroll is re-enabled, useful before any view change.
+         */
+        function resetBodyScroll() {
+            document.body.style.overflow = '';
+        }
 
         function toggleSidebar() {
             const isOpen = mobileSidebar.classList.contains('open');
@@ -1382,8 +1389,8 @@
             sidebarBackdrop.classList.toggle('open', !isOpen);
             sidebarBackdrop.classList.toggle('hidden', isOpen);
             
-            // Prevent body scrolling when the sidebar is open
-            document.body.style.overflow = isOpen ? 'hidden' : '';
+            // Control body scrolling: Disable if opening, enable if closing
+            document.body.style.overflow = !isOpen ? 'hidden' : '';
         }
 
         // Attach listeners
@@ -1592,6 +1599,8 @@
          * Renders the main order tracking page (list view).
          */
         function showTrackOrderView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
+            
             if (!loggedInUser || !loggedInUser.uid) {
                 showModal("Login Required", "Please log in to view and track your orders.");
                 const isOpen = mobileSidebar.classList.contains('open');
@@ -1685,6 +1694,7 @@
          * Renders the specific detail page for a single order.
          */
         function showOrderDetailView(order) {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'order-detail';
 
@@ -1894,6 +1904,8 @@
          * Renders the cart view.
          */
         function renderCartView(clearFirst = true) {
+            resetBodyScroll(); // Re-enable scroll when changing views
+
             if (clearFirst) {
                 clearListeners();
             }
@@ -1944,15 +1956,9 @@
                         <div class="flex-1 min-w-0">
                             <h3 class="text-lg font-semibold text-gray-900 truncate">${item.name}</h3>
                             <p class="text-sm text-gray-500">${CURRENCY_SYMBOL}${price.toFixed(2)} x ${item.quantity}</p>
-                            <p class="text-base font-bold text-orange-600">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}`;
+                            <p class="text-base font-bold text-orange-600">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}</p>
+                        </div>
                         
-                        if (item.originalPrice && item.originalPrice > item.price) {
-                            itemEl.querySelector('p:last-child').innerHTML += ` <span class="original-price text-sm ml-2">${CURRENCY_SYMBOL}${item.originalPrice.toFixed(2)}</span>`;
-                        }
-                        
-                        itemEl.querySelector('p:last-child').innerHTML += `</p></div>`;
-                        
-                        itemEl.innerHTML += `
                         <div class="flex items-center space-x-2 flex-shrink-0">
                             <button data-id="${item.id}" data-action="decrease" class="cart-quantity-btn p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors">
                                 <i class="ph ph-minus text-lg"></i>
@@ -2023,6 +2029,8 @@
          * Renders the checkout page.
          */
         function showCheckoutView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
+
             if (!loggedInUser || !loggedInUser.email) {
                 showModal("Login Required", "Please log in to proceed to checkout.");
                 showAuthModal('login');
@@ -2560,6 +2568,7 @@
          * Renders the home view.
          */
         function renderHomeView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners(); 
             appState = 'home';
             currentTag = '';
@@ -2619,6 +2628,7 @@
          * Renders the "View More" product listing page.
          */
         function showProductListing(tag) {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'listing';
             currentTag = tag;
@@ -2654,6 +2664,7 @@
          * Renders the paginated Category listing page.
          */
         function showCategoryListing(category) {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'category';
             currentCategory = category;
@@ -2896,6 +2907,7 @@
          * Renders the product detail page for a given product ID.
          */
         async function showProductDetail(productId) {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners(); 
             appState = 'detail';
             
@@ -2941,7 +2953,7 @@
             }
         }
         
-        // --- Spec Generation Helpers (NEW/UPDATED) ---
+        // --- Spec Generation Helpers (UPDATED to use dedicated functions) ---
 
         /**
          * Helper to create a single row for the specs table.
@@ -2964,7 +2976,7 @@
         }
         
         /**
-         * Generates HTML for Laptop/Computer specifications (old structure but uses flat keys).
+         * Generates HTML for Laptop/Computer specifications (using flat keys from Admin Dashboard).
          */
         function generateLaptopSpecsHtml(specs) {
             let html = '<table class="w-full border border-gray-200 rounded-lg overflow-hidden table-fixed">';
@@ -3003,6 +3015,17 @@
             html += createSpecRow("Screen Resolution", specs.displayResolution);
             html += createSpecRow("Touchscreen", specs.displayTouch);
             html += createSpecRow("Backlight", specs.displayBacklight);
+            
+            // Assuming the 'Features & Connectivity' data is also flattened in the specs object 
+            // from the Admin Dashboard, use the keys below.
+            html += createSpecHeader("Features & Connectivity");
+            html += createSpecRow("Color", specs.color);
+            html += createSpecRow("Fingerprint Reader", specs.fingerprint);
+            html += createSpecRow("Numeric Keyboard", specs.numKeyboard);
+            html += createSpecRow("Backlit Keyboard", specs.backlitKeyboard);
+            html += createSpecRow("Bluetooth", specs.bluetooth);
+            html += createSpecRow("LAN", specs.lan);
+            html += createSpecRow("Wireless/Wifi", specs.wifi);
             
             html += '</table>';
             return html;
@@ -3072,7 +3095,7 @@
         }
 
         /**
-         * Generates the HTML for the product detail page, handling discount prices and PKR currency.
+         * Renders the final product detail page content.
          */
         function renderDetailPage(product) {
             const details = product.details || {};
@@ -3088,7 +3111,7 @@
                 specsHtml = generateLaptopSpecsHtml(specs);
             } else if (category === 'Phones') {
                 specsHtml = generatePhoneSpecsHtml(specs);
-            } else if (category === 'TVs') {
+            } else if (category === 'TV') {
                 specsHtml = generateTvSpecsHtml(specs);
             } else {
                  specsHtml = `<p class="text-red-500">No specific specification template found for category: ${category}</p>`;
@@ -3270,6 +3293,7 @@
         // --- Page View Functions (Policies, FAQ, About) ---
 
         function renderFaqView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'faq';
             
@@ -3300,6 +3324,7 @@
         }
 
         function renderShippingPolicyView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'shipping';
             
@@ -3316,6 +3341,7 @@
         }
 
         function renderReturnPolicyView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'return';
             
@@ -3332,6 +3358,7 @@
         }
 
         function renderTosView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'tos';
             
@@ -3348,6 +3375,7 @@
         }
 
         function renderAboutView() {
+            resetBodyScroll(); // Re-enable scroll when changing views
             clearListeners();
             appState = 'about';
             
