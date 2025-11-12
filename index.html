@@ -359,15 +359,19 @@
                 </div>
 
                 <div class="flex-1 max-w-2xl mx-4 hidden sm:block">
-                    <form class="flex w-full">
+                    <form id="desktop-search-form" class="relative flex w-full">
                         <input
+                            id="desktop-search-input"
                             type="search"
+                            autocomplete="off"
                             class="flex-1 w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                             placeholder="Search in RareShop"
                         />
-                        <button class="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
                             <i class="ph ph-magnifying-glass text-xl"></i>
                         </button>
+
+                        <div id="desktop-search-results" class="absolute top-full left-0 w-full bg-white border border-gray-200 shadow-xl rounded-b-lg z-50 hidden max-h-96 overflow-y-auto dark:bg-gray-800 dark:border-gray-700"></div>
                     </form>
                 </div>
 
@@ -392,15 +396,19 @@
                 </div>
             </div>
             <div class="sm:hidden py-2">
-                 <form class="flex w-full">
+                 <form id="mobile-search-form" class="relative flex w-full">
                     <input
+                        id="mobile-search-input"
                         type="search"
+                        autocomplete="off"
                         class="flex-1 w-full px-4 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         placeholder="Search in RareShop"
                     />
-                    <button class="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+                    <button type="submit" class="px-4 py-2 bg-orange-600 text-white rounded-r-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
                         <i class="ph ph-magnifying-glass text-xl"></i>
                     </button>
+
+                    <div id="mobile-search-results" class="absolute top-full left-0 w-full bg-white border border-gray-200 shadow-xl rounded-b-lg z-50 hidden max-h-96 overflow-y-auto dark:bg-gray-800 dark:border-gray-700"></div>
                 </form>
             </div>
         </div>
@@ -3885,6 +3893,134 @@
                     if (appState === 'home') {
                         renderHomeView();
                     }
+                    let globalSearchCache = [];
+
+                    async function cacheProductsForSearch() {
+                        try {
+                            const q = query(collection(db, PRODUCTS_COLLECTION_PATH));
+                            const snapshot = await getDocs(q);
+                            globalSearchCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            console.log("Search cache loaded:", globalSearchCache.length, "products");
+                            } catch (error) {
+                                console.error("Error caching products for search:", error);
+                            }
+                        }
+
+                        cacheProductsForSearch();
+
+                        function handleLiveInput(e, resultsId) {
+                            const queryTerm = e.target.value.toLowerCase().trim();
+                            const resultsContainer = document.getElementById(resultsId);
+
+                            if (!queryTerm) {
+                                resultsContainer.classList.add('hidden');
+                                resultsContainer.innerHTML = '';
+                                return;
+                            }
+
+                            const matches = globalSearchCache.filter(product => {
+                                const nameMatch = product.name ? product.name.toLowerCase().includes(queryTerm) : false;
+                                const categoryMatch = product.category ? product.category.toLowerCase().includes(queryTerm) : false;
+                                return nameMatch || categoryMatch;
+                                });
+
+                                renderDropdownResults(matches, resultsContainer);
+                                }
+
+                                function renderDropdownResults(products, container) {
+                                    container.innerHTML = '';
+                                    if (products.length === 0) {
+                                        container.innerHTML = `
+                                        <div class="p-4 text-center text-gray-500 text-sm">No matches found</div>
+                                        `;
+                                        } else {
+
+                                            products.slice(0, 6).forEach(product => {
+                                                const price = product.discountPrice || product.price || 0;
+                                                const el = document.createElement('div');
+                                                el.className = 'flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors dark:hover:bg-gray-700 dark:border-gray-700';
+
+                                                el.innerHTML = `
+                                                <img src="${product.image || 'https://placehold.co/50'}" class="w-12 h-12 object-cover rounded-md bg-gray-200 flex-shrink-0">
+                                                <div class="ml-3 flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-800 truncate dark:text-gray-200">${product.name}</p>
+                                                    <p class="text-xs font-bold text-orange-600">${CURRENCY_SYMBOL}${price.toFixed(2)}</p>
+                                                    </div>
+                                                    `;
+
+
+                                                    el.addEventListener('click', () => {
+                                                        container.classList.add('hidden');
+                                                        showProductDetail(product.id);
+                                                        });
+
+                                                        container.appendChild(el);
+                                                        });
+                                                    }
+                                                    container.classList.remove('hidden');
+                                                }
+
+                                                document.addEventListener('click', (e) => {
+                                                    const desktopResults = document.getElementById('desktop-search-results');
+                                                    const mobileResults = document.getElementById('mobile-search-results');
+                                                    const desktopInput = document.getElementById('desktop-search-input');
+                                                    const mobileInput = document.getElementById('mobile-search-input');
+                                                    
+                                                    if (desktopResults && !desktopResults.contains(e.target) && e.target !== desktopInput) {
+                                                        desktopResults.classList.add('hidden');
+                                                    }
+                                                    if (mobileResults && !mobileResults.contains(e.target) && e.target !== mobileInput) {
+                                                        mobileResults.classList.add('hidden');
+                                                    }
+                                                });
+
+                                                async function handleEnterSearch(e, inputId) {
+                                                    e.preventDefault();
+                                                    const val = document.getElementById(inputId).value;
+                                                    // Simply hide the dropdown and perform the full page search (logic from previous step)
+                                                    // We can reuse the filtering logic or just show the listing page
+                                                    if(val) showProductListingSearch(val);
+                                                }
+
+                                                function showProductListingSearch(term) {
+                                                    resetBodyScroll();
+                                                    clearListeners();
+                                                    appState = 'search';
+                                                    const template = document.getElementById('listing-view-template');
+                                                    const clone = document.importNode(template.content, true);
+                                                    mainContentContainer.innerHTML = '';
+                                                    mainContentContainer.appendChild(clone);
+
+                                                    document.getElementById('listing-page-title').textContent = `Results for "${term}"`;
+                                                    document.getElementById('back-to-home-btn-listing').addEventListener('click', renderHomeView);
+
+                                                    const grid = document.getElementById('listing-products-grid');
+                                                    const matches = globalSearchCache.filter(p =>
+                                                    (p.name && p.name.toLowerCase().includes(term.toLowerCase())) ||
+                                                    (p.category && p.category.toLowerCase().includes(term.toLowerCase()))
+                                                    );
+
+                                                    document.getElementById('desktop-search-results')?.classList.add('hidden');
+                                                    document.getElementById('mobile-search-results')?.classList.add('hidden');
+
+                                                }
+                                                
+                                                const desktopInput = document.getElementById('desktop-search-input');
+                                                const mobileInput = document.getElementById('mobile-search-input');
+                                                const desktopForm = document.getElementById('desktop-search-form');
+                                                const mobileForm = document.getElementById('mobile-search-form');
+
+                                                if (desktopInput) {
+                                                    desktopInput.addEventListener('input', (e) => handleLiveInput(e, 'desktop-search-results'));
+                                                    desktopInput.addEventListener('focus', (e) => handleLiveInput(e, 'desktop-search-results')); // Show on click if text exists
+                                                }
+                                                if (mobileInput) {
+                                                    mobileInput.addEventListener('input', (e) => handleLiveInput(e, 'mobile-search-results'));
+                                                    mobileInput.addEventListener('focus', (e) => handleLiveInput(e, 'mobile-search-results'));
+                                                }
+
+                                                if (desktopForm) desktopForm.addEventListener('submit', (e) => handleEnterSearch(e, 'desktop-search-input'));
+                                                if (mobileForm) mobileForm.addEventListener('submit', (e) => handleEnterSearch(e, 'mobile-search-input'));
                 });
                 
                 // 4. Setup Auth Modal Listeners
