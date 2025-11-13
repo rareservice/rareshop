@@ -17,6 +17,11 @@
     <link rel="icon" type="image/png" href="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762613482/ChatGPT_Image_Nov_8_2025_07_51_53_PM_lorjo6.png">
     <link rel="apple-touch-icon" href="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762613482/ChatGPT_Image_Nov_8_2025_07_51_53_PM_lorjo6.png">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+    </script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <style>
@@ -312,7 +317,32 @@
         
     </style>
 </head>
-<body class="bg-white">
+<body class="bg-white dark:bg-gray-900 dark:text-white transition-colors duration-300">
+
+    <div id="initial-loader" class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-white">
+        <h1 class="text-4xl md:text-6xl font-bold mb-8 tracking-widest uppercase">RareShop</h1>
+        <i class="ph ph-spinner-gap text-5xl md:text-6xl animate-spin text-gray-400"></i>
+    </div>
+    <script>
+        // Keeps the loader visible for exactly 3 seconds, then fades it out
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const loader = document.getElementById('initial-loader');
+                if (loader) {
+                    // Add fade-out transition
+                    loader.style.transition = 'opacity 0.8s ease-out';
+                    loader.style.opacity = '0';
+                    
+                    // Remove from DOM after fade-out completes
+                    setTimeout(() => {
+                        loader.remove();
+                        // Re-enable scrolling just in case
+                        document.body.style.overflow = ''; 
+                    }, 800);
+                }
+            }, 3000); // 3000ms = 3 seconds
+        });
+    </script>
 
     <div id="sidebar-backdrop" class="backdrop hidden"></div>
 
@@ -334,12 +364,21 @@
                 <i class="ph ph-heart text-2xl mr-3"></i>
                 Wishlist (<span id="sidebar-wishlist-count">0</span>)
             </a>
-            <button id="sidebar-theme-toggle-btn" title="Toggle theme" class="w-full flex items-center justify-start text-lg font-medium text-gray-700 hover:text-orange-600 p-0 dark:text-gray-300 dark:hover:text-orange-500">
-                <i class="ph ph-circle-half text-2xl mr-3"></i>
-                Dark / Light Mode Toggle
-            </button>
-        </nav>
-        
+            <div class="flex items-center justify-between py-1">
+                <label for="theme-toggle" class="flex items-center cursor-pointer text-lg font-medium text-gray-700 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-500 transition-colors">
+                    <i class="ph ph-moon text-2xl mr-3"></i>
+                    <span>Dark Mode</span> 
+                </label>
+                
+                <label for="theme-toggle" class="relative inline-block w-14 h-8 cursor-pointer">
+                    <input type="checkbox" id="theme-toggle" class="sr-only peer" />
+                    <div class="w-full h-full bg-gray-300 dark:bg-gray-700 rounded-full shadow-inner transition-colors duration-300 peer-checked:bg-orange-600"></div>
+                    <div class="absolute top-1 left-1 w-6 h-6 bg-white rounded-full shadow-md transform transition-transform duration-300 peer-checked:translate-x-6 flex items-center justify-center">
+                         <i class="ph ph-sun text-orange-500 text-sm block dark:hidden"></i>
+                         <i class="ph ph-moon text-gray-700 text-sm hidden dark:block"></i>
+                    </div>
+                </label>
+            </div>
     </div>
     <header class="border-b border-gray-200 bg-white sticky top-0 z-50 dark:bg-gray-900 dark:border-gray-800">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -546,7 +585,7 @@
     </template>
 
     <template id="detail-view-template">
-        <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-6 md:p-10">
+        <div class="max-w-6xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-10 transition-colors duration-300">
             <button id="back-to-list-btn-detail" class="mb-6 flex items-center text-orange-600 hover:text-orange-800 font-medium transition-colors">
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back
             </button>
@@ -773,7 +812,7 @@
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
             </button>
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">Frequently Asked Questions</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-orange-500 mb-8 border-b pb-4 dark:border-gray-700">Frequently Asked Questions</h1>
             
             <div id="faq-accordion-container" class="space-y-4">
                 
@@ -874,7 +913,7 @@
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
             </button>
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">RareShop Shipping Policy</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-orange-500 mb-8 border-b pb-4 dark:border-gray-700">RareShop Shipping Policy</h1>
             
             <div class="space-y-6 bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200 text-gray-700">
                 <p>At RareShop, we aim to deliver your products safely and on time across Pakistan. Please read our shipping policy carefully to understand how we process, handle, and deliver your orders.</p>
@@ -973,7 +1012,7 @@
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
             </button>
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">RareShop Return & Refund Policy</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-orange-500 mb-8 border-b pb-4 dark:border-gray-700">RareShop Return & Refund Policy</h1>
             
             <div class="space-y-6 bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200 text-gray-700">
                 <p>At RareShop, customer satisfaction is our top priority. We ensure all our products are genuine, brand new, and carefully inspected before shipping. However, if you receive a faulty or damaged item, our return policy ensures a fair and smooth process.</p>
@@ -1083,10 +1122,10 @@
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
             </button>
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">RareShop – Terms of Service</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-orange-500 mb-8 border-b pb-4 dark:border-gray-700">RareShop – Terms of Service</h1>
             
             <div class="space-y-6 bg-white p-6 md:p-8 rounded-lg shadow-sm border border-gray-200 text-gray-700">
-                <p>Welcome to RareShop. These Terms of Service (“Terms”, “Agreement”) govern your use of our website [www.https://rareservices.store/] and all related services, including product purchases, payments, and support.</p>
+                <p>Welcome to RareShop. These Terms of Service (“Terms”, “Agreement”) govern your use of our website [https://rareservices.store/] and all related services, including product purchases, payments, and support.</p>
                 <p>By accessing or purchasing from RareShop, you agree to these terms. Please read them carefully.</p>
 
                 <div class="policy-section">
@@ -1403,13 +1442,20 @@
         }
 
         // Sidebar Theme Toggle Listener
-        if (sidebarThemeToggleBtn) {
-            sidebarThemeToggleBtn.addEventListener('click', () => {
-                const isDarkMode = htmlElement.classList.contains('dark');
-                if (isDarkMode) {
-                    setTheme('light');
-                } else {
+        // New Toggle Switch Listener
+        const themeToggleCheckbox = document.getElementById('theme-toggle');
+        
+        // 1. Set initial state based on current theme
+        if (themeToggleCheckbox) {
+            const isDark = htmlElement.classList.contains('dark');
+            themeToggleCheckbox.checked = isDark;
+
+            // 2. Listen for changes (Clicking the switch)
+            themeToggleCheckbox.addEventListener('change', () => {
+                if (themeToggleCheckbox.checked) {
                     setTheme('dark');
+                } else {
+                    setTheme('light');
                 }
             });
         }
@@ -3225,11 +3271,14 @@
         /**
          * Helper to create a single row for the specs table.
          */
+        /**
+         * Helper to create a single row for the specs table.
+         */
         function createSpecRow(label, value) {
             if (!value || value.trim() === '') return ''; 
-            return `<tr class="border-b border-gray-100">
-                        <td class="py-2 px-4 bg-gray-50 text-sm font-medium text-gray-600 w-1/3">${label}</td>
-                        <td class="py-2 px-4 text-sm text-gray-800 break-words">${value}</td>
+            return `<tr class="border-b border-gray-100 dark:border-gray-700">
+                        <td class="py-2 px-4 bg-gray-50 dark:bg-gray-700/50 text-sm font-medium text-gray-600 dark:text-gray-400 w-1/3">${label}</td>
+                        <td class="py-2 px-4 text-sm text-gray-800 dark:text-gray-200 break-words">${value}</td>
                     </tr>`;
         }
         
@@ -3237,8 +3286,8 @@
          * Helper to create a section header for the specs table.
          */
         function createSpecHeader(title) {
-            return `<tr class="bg-gray-200">
-                        <th class="py-2 px-4 text-left text-sm font-semibold text-gray-700" colspan="2">${title}</th>
+            return `<tr class="bg-gray-200 dark:bg-gray-700">
+                        <th class="py-2 px-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-200" colspan="2">${title}</th>
                     </tr>`;
         }
         
@@ -3364,6 +3413,9 @@
         /**
          * Renders the final product detail page content.
          */
+        /**
+         * Renders the final product detail page content.
+         */
         function renderDetailPage(product) {
             const details = product.details || {};
             const detailWrapper = document.getElementById('detail-content-wrapper');
@@ -3387,7 +3439,6 @@
                  specsHtml = `<p class="text-red-500">No specific specification template found for category: ${category}</p>`;
             }
 
-                
             const originalPrice = (product.price || 0).toFixed(2);
             const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
             
@@ -3401,18 +3452,17 @@
             if (isSaleActive) {
                 priceDisplayHtml = `
                     <div class="flex items-center">
-                        <span class="text-4xl font-bold text-red-600">${CURRENCY_SYMBOL}${discountPrice.toFixed(2)}</span>
-                        <span class="text-xl text-gray-500 line-through ml-4">${CURRENCY_SYMBOL}${originalPrice}</span>
+                        <span class="text-4xl font-bold text-red-600 dark:text-red-500">${CURRENCY_SYMBOL}${discountPrice.toFixed(2)}</span>
+                        <span class="text-xl text-gray-500 dark:text-gray-400 line-through ml-4">${CURRENCY_SYMBOL}${originalPrice}</span>
                     </div>
                 `;
             } else {
                 priceDisplayHtml = `
-                    <span class="text-4xl font-bold text-orange-600">${CURRENCY_SYMBOL}${originalPrice}</span>
+                    <span class="text-4xl font-bold text-orange-600 dark:text-orange-500">${CURRENCY_SYMBOL}${originalPrice}</span>
                 `;
             }
 
             const images = [product.image, product.image2, product.image3, product.image4, product.image5].filter(Boolean);
-            
             const primaryImage = images.length > 0 ? images[0] : 'https://placehold.co/800x800/e2e8f0/9ca3af?text=Product+Image';
             
             let thumbnailsHtml = '';
@@ -3422,17 +3472,30 @@
                         <img 
                             src="${imgSrc}" 
                             alt="Thumbnail ${index + 1}" 
-                            class="thumbnail-img h-16 w-16 object-cover rounded-md cursor-pointer border-2 ${index === 0 ? 'border-orange-500' : 'border-transparent hover:border-orange-500'}"
+                            class="thumbnail-img h-16 w-16 object-cover rounded-md cursor-pointer border-2 ${index === 0 ? 'border-orange-500' : 'border-transparent hover:border-orange-500 dark:hover:border-orange-400'}"
                             data-src="${imgSrc}"
                         >
                     `;
                 });
             }
 
+            // --- SOCIAL PROOF HTML ---
+            const socialProofHtml = `
+                <div id="social-proof-container" class="mt-6 mb-6 space-y-2 border-t border-b border-gray-100 dark:border-gray-700 py-4">
+                    <p class="text-red-600 dark:text-red-400 text-sm font-bold flex items-center animate-pulse">
+                        <i class="ph ph-eye text-xl mr-2"></i>
+                        <span id="viewing-count">...</span>&nbsp; people are viewing this right now
+                    </p>
+                    <p class="text-red-600 dark:text-red-400 text-sm font-bold flex items-center">
+                        <i class="ph ph-fire text-xl mr-2"></i>
+                        <span id="sold-count">...</span>&nbsp; sold in last 22 hours
+                    </p>
+                </div>
+            `;
 
             detailWrapper.innerHTML = `
                 <div>
-                    <div class="aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-inner mb-4 relative">
+                    <div class="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden shadow-inner mb-4 relative">
                         <img 
                             src="${primaryImage}" 
                             alt="${product.name}" 
@@ -3452,25 +3515,27 @@
 
                 <div class="flex flex-col justify-between">
                     <div>
-                        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-4">${product.name}</h1>
+                        <h1 class="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white mb-4">${product.name}</h1>
                         
                         <div id="product-sale-timer-container" class="mb-4"></div>
 
-                        <div class="flex items-center flex-wrap gap-x-4 gap-y-2 mb-6">
+                        <div class="flex items-center flex-wrap gap-x-4 gap-y-2 mb-2">
                             <div id="price-display-wrapper">
                                 ${priceDisplayHtml}
                             </div>
-                            <span class="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">${product.category}</span>
-                            <span class="font-bold ${isOutOfStock ? 'text-red-600' : 'text-green-600'}">
+                            <span class="text-sm font-medium text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">${product.category}</span>
+                            <span class="font-bold ${isOutOfStock ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}">
                                 ${isOutOfStock ? 'Out of Stock' : `In Stock (${currentStock} left)`}
                             </span>
                         </div>
 
-                        <h3 class="text-xl font-semibold text-gray-800 mb-3 border-b pb-2">Specifications</h3>
-                        <div class="text-gray-700 space-y-2 mb-8 overflow-x-auto">
+                        ${socialProofHtml}
+
+                        <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-3 border-b dark:border-gray-700 pb-2">Specifications</h3>
+                        <div class="text-gray-700 dark:text-gray-300 space-y-2 mb-8 overflow-x-auto">
                             ${specsHtml}
                         </div>
-                        </div>
+                    </div>
 
                     <div class="mt-8 space-y-3">
                         <button id="add-to-cart-btn" 
@@ -3483,7 +3548,7 @@
                         <button id="buy-now-btn" 
                                 data-product-id="${product.id}"
                                 data-product-name="${product.name}"
-                                class="w-full py-3 bg-white text-orange-600 border-2 border-orange-600 text-lg font-semibold rounded-lg shadow-md hover:bg-orange-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="w-full py-3 bg-white text-orange-600 border-2 border-orange-600 text-lg font-semibold rounded-lg shadow-md hover:bg-orange-50 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-orange-500 dark:border-orange-500 dark:hover:bg-gray-700"
                                 ${isOutOfStock ? 'disabled' : ''}>
                             Buy Now
                         </button>
@@ -3491,11 +3556,33 @@
                 </div>
             `;
             
+            // --- SOCIAL PROOF LOGIC ---
+            // 1. Viewing Logic: 5 to 50, updates every 3 seconds
+            const viewCountEl = document.getElementById('viewing-count');
+            if(viewCountEl) {
+                const updateView = () => {
+                    const count = Math.floor(Math.random() * (50 - 5 + 1)) + 5;
+                    viewCountEl.textContent = count;
+                };
+                updateView(); 
+                activeTimers['viewing_proof'] = setInterval(updateView, 3000);
+            }
+
+            // 2. Sold Logic: 10 to 69, updates every 5 hours
+            const soldCountEl = document.getElementById('sold-count');
+            if(soldCountEl) {
+                const updateSold = () => {
+                    const count = Math.floor(Math.random() * (69 - 10 + 1)) + 10;
+                    soldCountEl.textContent = count;
+                };
+                updateSold(); 
+                activeTimers['sold_proof'] = setInterval(updateSold, 18000000);
+            }
+
             // ADDED: Re-attach wishlist listener to the detail heart icon
             document.querySelector('.wishlist-icon').addEventListener('click', async (e) => {
                  e.stopPropagation(); 
                  await toggleWishlist(product);
-                 // The onSnapshot listener handles the visual update of the icon via updateAllWishlistIcons
             });
 
             document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
@@ -3543,10 +3630,10 @@
                     }
                     
                     document.querySelectorAll('.thumbnail-img').forEach(thumb => {
-                        thumb.classList.remove('border-orange-500');
+                        thumb.classList.remove('border-orange-500', 'dark:border-orange-400');
                         thumb.classList.add('border-transparent');
                     });
-                    img.classList.add('border-orange-500');
+                    img.classList.add('border-orange-500', 'dark:border-orange-400');
                     img.classList.remove('border-transparent');
                 });
             });
