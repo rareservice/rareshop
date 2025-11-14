@@ -11,7 +11,7 @@
     </script>
 
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1280, user-scalable=yes">
     <title>RareShop - Laptops, Phones, TVs & More</title>
     <meta name="description" content="Shop the latest Laptops, Phones, TVs, and Computers in Pakistan. 100% Original products, Advance Payment security, and fast nationwide delivery via RareShop.">
     <meta name="keywords" content="RareShop, Electronics Pakistan, Laptops, Mobile Phones, LED TV, Online Shopping Pakistan">
@@ -189,22 +189,39 @@
         /* --- Checkout Form Styles --- */
         .form-input {
             appearance: none;
-            background-color: #f9fafb; /* gray-50 / light gray */
-            border: 1px solid #e5e7eb; /* gray-200 */
-            border-radius: 0.5rem; /* rounded-lg */
+            background-color: #f9fafb; 
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.5rem; 
             padding: 0.6rem 1rem;
-            color: #1f2937; /* gray-800 */
+            color: #1f2937; 
             width: 100%;
             font-size: 1rem;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s, color 0.2s;
         }
 
-        /* Focus state: black border (ring-black focus logic) */
+        /* Dark Mode Styles for Inputs */
+        .dark .form-input {
+            background-color: #374151; /* gray-700 */
+            border-color: #4b5563; /* gray-600 */
+            color: #ffffff; /* white text */
+        }
+        .dark .form-input::placeholder {
+            color: #9ca3af; /* lighter gray placeholder */
+        }
+
+        /* Focus state */
         .form-input:focus {
             outline: none;
-            border-color: #111827; /* gray-900 / black */
-            box-shadow: 0 0 0 1px #111827; /* thin black ring */
+            border-color: #111827; 
+            box-shadow: 0 0 0 1px #111827; 
             background-color: #ffffff;
+        }
+        
+        /* Dark Mode Focus State */
+        .dark .form-input:focus {
+            border-color: #f97316; /* orange-500 */
+            box-shadow: 0 0 0 1px #f97316;
+            background-color: #1f2937; /* gray-800 */
         }
 
         /* --- Payment Method Styles --- */
@@ -486,7 +503,7 @@
                 </div>
             </section>
             <section class="mb-12">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-slide-up" style="animation-delay: 0.1s;">Featured Products</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-orange-600 mb-6 animate-slide-up" style="animation-delay: 0.1s;">Featured Products</h2>
                 <div id="featured-products-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                     </div>
                 <div id="featured-products-view-more" class="text-right mt-4 hidden">
@@ -497,7 +514,7 @@
             </section>
             
             <section class="mb-12">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-slide-up" style="animation-delay: 0.2s;">Categories</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-orange-600 mb-6 animate-slide-up" style="animation-delay: 0.2s;">Categories</h2>
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <a href="#" data-category="Laptops" class="category-link group block bg-gray-100 rounded-lg p-6 text-center hover:bg-orange-100 hover:shadow-lg transition-all duration-300 h-full flex flex-col items-center">
                         <img 
@@ -539,7 +556,7 @@
             </section>
 
             <section class="mb-12">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-slide-up" style="animation-delay: 0.3s;">Top Sales</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-orange-600 mb-6 animate-slide-up" style="animation-delay: 0.3s;">Top Sales</h2>
                 <div id="top-sales-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                     </div>
                 <div id="top-sales-view-more" class="text-right mt-4 hidden">
@@ -550,7 +567,7 @@
             </section>
 
             <section class="mb-12">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-6 animate-slide-up" style="animation-delay: 0.4s;">Most Popular</h2>
+                <h2 class="text-2xl font-semibold text-gray-800 dark:text-orange-600 mb-6 animate-slide-up" style="animation-delay: 0.4s;">Most Popular</h2>
                 <div id="most-popular-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
                     </div>
                 <div id="most-popular-view-more" class="text-right mt-4 hidden">
@@ -645,14 +662,14 @@
     
     <template id="wishlist-view-template">
         <div class="max-w-6xl mx-auto">
-            <button id="back-to-home-btn-wishlist" class="mb-8 flex items-center text-gray-600 hover:text-orange-600 font-medium transition-colors">
+            <button id="back-to-home-btn-wishlist" class="mb-8 flex items-center text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium transition-colors">
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
             </button>
             
-            <h1 class="text-3xl font-bold text-gray-800 mb-8 border-b pb-4">Your Wishlist (<span id="wishlist-count-title">0</span> Items)</h1>
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8 border-b pb-4 dark:border-gray-700">Your Wishlist (<span id="wishlist-count-title">0</span> Items)</h1>
             
             <div id="wishlist-products-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-                <p class="col-span-full text-center text-gray-500 p-8 border rounded-lg" id="wishlist-empty-message">
+                <p class="col-span-full text-center text-gray-500 p-8 border rounded-lg dark:text-gray-400 dark:border-gray-700" id="wishlist-empty-message">
                     Your wishlist is empty. Start adding your favorite items!
                 </p>
             </div>
@@ -661,23 +678,23 @@
     
     <template id="checkout-view-template">
         <div class="max-w-6xl mx-auto">
-            <a href="#" id="return-to-cart-link" class="mb-4 inline-flex items-center text-gray-600 hover:text-orange-600 font-medium transition-colors">
+            <a href="#" id="return-to-cart-link" class="mb-4 inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium transition-colors">
                 <i class="ph ph-arrow-left text-xl mr-2"></i> Return to cart
             </a>
             
-            <h1 class="text-3xl font-bold text-gray-900 mb-8 border-b pb-4">Checkout</h1>
+            <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 border-b pb-4 dark:border-gray-700">Checkout</h1>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div class="lg:col-span-2">
                     <form id="checkout-form" class="space-y-6">
                         
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Contact Information</h2>
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Contact Information</h2>
                             <input type="email" id="contact-email" placeholder="Email" class="form-input" required>
                         </div>
 
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Shipping Address</h2>
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Shipping Address</h2>
                             
                             <div class="mb-4">
                                 <input type="text" id="shipping-country" value="Pakistan" class="form-input bg-gray-200 cursor-not-allowed" readonly>
@@ -707,7 +724,7 @@
                         </div>
 
                         <div>
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Choose Advance Payment Method</h2>
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4">Choose Advance Payment Method</h2>
                             
                             <div class="payment-logo-container mb-6">
                                 <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762354282/acded9d6362d497965c18a071cb9fd_yojbkb.webp" 
@@ -740,24 +757,24 @@
                         </div>
                         
                         <div id="payment-proof-section">
-                            <h2 class="text-xl font-semibold text-gray-800 mb-4 pt-4 border-t">Payment Proof Upload (Required)</h2>
-                            <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
-                                <label for="payment-screenshot-file" class="block text-sm font-medium text-gray-700">
+                            <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-4 pt-4 border-t dark:border-gray-700">Payment Proof Upload (Required)</h2>
+                            <div class="bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+                                <label for="payment-screenshot-file" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Upload Payment Screenshot (JPG/PNG)
                                 </label>
-                                <input type="file" id="payment-screenshot-file" required accept="image/png, image/jpeg" class="w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200">
-                                <p id="upload-status" class="text-sm text-blue-700 hidden">Ready to upload...</p>
+                                <input type="file" id="payment-screenshot-file" required accept="image/png, image/jpeg" class="w-full text-sm text-gray-700 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 dark:file:bg-gray-700 dark:file:text-white dark:hover:file:bg-gray-600">
+                                <p id="upload-status" class="text-sm text-blue-700 dark:text-blue-400 hidden">Ready to upload...</p>
                             </div>
                         </div>
-                        <button type="submit" id="checkout-buy-now-btn" class="w-full py-4 bg-gray-900 text-white text-xl font-bold rounded-lg shadow-xl hover:bg-black transition-colors disabled:opacity-50 mt-6">
+                        <button type="submit" id="checkout-buy-now-btn" class="w-full py-4 bg-gray-900 text-white text-xl font-bold rounded-lg shadow-xl hover:bg-black transition-colors disabled:opacity-50 mt-6 dark:bg-orange-600 dark:hover:bg-orange-700">
                             Place Order (Rs.0.00)
                         </button>
                         
                     </form>
                 </div>
 
-                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-gray-200 h-fit sticky top-24">
-                    <h2 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Order Summary</h2>
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg border border-gray-200 h-fit sticky top-24 dark:bg-gray-800 dark:border-gray-700">
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b pb-2 dark:border-gray-700">Order Summary</h2>
                     <div id="checkout-summary-content">
                         <p class="text-center text-gray-500 py-6"><i class="ph ph-spinner-gap animate-spin mr-2"></i> Loading summary...</p>
                     </div>
@@ -1259,6 +1276,90 @@
             </div>
         </div>
     </template>
+
+    <template id="about-view-template">
+        <div class="max-w-4xl mx-auto">
+            <button id="back-to-home-btn-about" class="mb-8 flex items-center text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium transition-colors">
+                <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
+            </button>
+            
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-orange-500 mb-8 border-b pb-4 dark:border-gray-700">About Us – RareShop</h1>
+            
+            <div class="space-y-8 bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300">
+                
+                <div>
+                    <p class="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                        Welcome to RareShop, Pakistan’s trusted online destination for quality Laptops, Computers, TVs, and Mobile Phones.
+                    </p>
+                    <p>
+                        At RareShop, our mission is simple: to provide reliable tech products at honest prices, backed with exceptional customer service.
+                    </p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-3">Who We Are</h2>
+                    <p class="leading-relaxed">
+                        RareShop is a part of Rare Services, a growing digital business dedicated to offering high-quality electronics across Pakistan. We understand that technology is an essential part of modern life—whether you're working, studying, creating, or entertaining. That’s why we carefully select every product to make sure it meets the standards our customers deserve.
+                    </p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-3">What We Offer</h2>
+                    <p class="mb-4">We specialize in a range of top-quality tech products, including:</p>
+                    <ul class="list-disc list-inside space-y-2 ml-2">
+                        <li><strong>Laptops & Computers</strong> – from everyday use to professional workstations</li>
+                        <li><strong>Smartphones & Accessories</strong> – reliable, original, and performance-tested</li>
+                        <li><strong>Smart TVs & LED Screens</strong> – crisp visuals and trusted brands</li>
+                        <li><strong>Computer Components & Tech Gear</strong> – for upgrades, gaming, and office setups</li>
+                    </ul>
+                    <p class="mt-4">Every item is thoroughly checked, verified, and sourced from trusted suppliers to ensure you receive only the best.</p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-3">Why Choose RareShop?</h2>
+                    <ul class="space-y-3">
+                        <li class="flex items-start">
+                            <i class="ph ph-check-circle text-orange-600 text-xl mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Quality-Checked Products</strong> – Each device is inspected before delivery</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="ph ph-check-circle text-orange-600 text-xl mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Affordable Prices</strong> – Best value without compromising on performance</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="ph ph-check-circle text-orange-600 text-xl mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Customer Support</strong> – Friendly assistance before & after purchase</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="ph ph-check-circle text-orange-600 text-xl mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Fast Delivery Across Pakistan</strong> – Reliable and secure shipping</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="ph ph-check-circle text-orange-600 text-xl mr-3 flex-shrink-0 mt-0.5"></i>
+                            <span><strong>Honesty & Transparency</strong> – No hidden charges, no fake listings</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-3">Our Commitment</h2>
+                    <p class="leading-relaxed">
+                        At RareShop, we believe in building trust, not just making sales. Your satisfaction is our priority. Whether you're buying your first computer or upgrading your entire setup, we guide you every step of the way.
+                    </p>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl font-semibold text-gray-800 dark:text-white mb-3">Service Area</h2>
+                    <p class="flex items-center font-medium text-orange-600 mb-2">
+                        <i class="ph ph-map-pin text-xl mr-2"></i> Available Across Pakistan Only
+                    </p>
+                    <p>We proudly deliver our services to customers in all major cities and regions of Pakistan.</p>
+                </div>
+
+            </div>
+        </div>
+    </template>
+
     <footer class="bg-gray-900 text-gray-300 py-12">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
@@ -1306,7 +1407,7 @@
                         </li>
                         <li class="flex items-center text-gray-400">
                             <i class="ph ph-whatsapp-logo text-xl mr-2"></i>
-                            <a href="httpshttps://wa.me/923430821414" class="hover:text-white transition-colors">03430821414</a>
+                            <a href="https://wa.me/923430821414" class="hover:text-white transition-colors">03430821414</a>
                         </li>
                     </ul>
                 </div>
@@ -1427,8 +1528,13 @@
         /**
          * Ensures body scroll is re-enabled, useful before any view change.
          */
+        /**
+         * Ensures body scroll is re-enabled and PAGE SCROLLS TO TOP.
+         */
         function resetBodyScroll() {
             document.body.style.overflow = '';
+            // This line makes the page scroll to the top automatically
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function toggleSidebar() {
@@ -2351,6 +2457,9 @@
         /**
          * Renders the Order Summary on the Checkout page.
          */
+        /**
+         * Renders the Order Summary on the Checkout page.
+         */
         function renderCheckoutSummary(items) {
             const container = document.getElementById('checkout-summary-content');
             if (!container) return;
@@ -2366,37 +2475,39 @@
                 subtotal += itemTotal;
                 totalCount += item.quantity;
                 
+                // ADDED: dark:border-gray-700, dark:text-white, dark:text-gray-400
                 html += `
-                    <div class="flex items-center space-x-3 py-2 border-b border-gray-100">
+                    <div class="flex items-center space-x-3 py-2 border-b border-gray-100 dark:border-gray-700">
                         <div class="relative flex-shrink-0">
                             <img src="${item.image || 'https://placehold.co/40x40/e2e8f0/9ca3af?text=IMG'}" 
                                  alt="${item.name}" 
-                                 class="h-10 w-10 object-cover rounded-md border"
+                                 class="h-10 w-10 object-cover rounded-md border border-gray-200 dark:border-gray-600"
                                  onerror="this.onerror=null;this.src='https://placehold.co/40x40/e2e8f0/9ca3af?text=IMG';">
                             <span class="absolute -top-2 -right-2 h-5 w-5 bg-orange-600 text-white text-xs rounded-full flex items-center justify-center">${item.quantity}</span>
                         </div>
                         <div class="flex-1">
-                            <p class="text-sm font-medium text-gray-800 truncate">${item.name}</p>
-                            <p class="text-xs text-gray-500">${CURRENCY_SYMBOL}${price.toFixed(2)}</p>
+                            <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${item.name}</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${CURRENCY_SYMBOL}${price.toFixed(2)}</p>
                         </div>
-                        <span class="text-sm font-semibold text-gray-900">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}</span>
+                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-200">${CURRENCY_SYMBOL}${itemTotal.toFixed(2)}</span>
                     </div>
                 `;
             });
 
             const total = subtotal; 
             
+            // ADDED: dark:text-gray-300, dark:border-gray-700, dark:text-white
             html += `
-                <div class="space-y-3 mt-4 text-gray-700">
+                <div class="space-y-3 mt-4 text-gray-700 dark:text-gray-300">
                     <div class="flex justify-between">
                         <span>Subtotal (${totalCount} items)</span>
                         <span class="font-medium">${CURRENCY_SYMBOL}${subtotal.toFixed(2)}</span>
                     </div>
                     <div class="flex justify-between">
                         <span>Shipping</span>
-                        <span class="font-medium text-green-600">FREE</span>
+                        <span class="font-medium text-green-600 dark:text-green-400">FREE</span>
                     </div>
-                    <div class="flex justify-between border-t pt-3 border-gray-300 text-lg font-bold text-gray-900">
+                    <div class="flex justify-between border-t pt-3 border-gray-300 dark:border-gray-600 text-lg font-bold text-gray-900 dark:text-white">
                         <span>Total</span>
                         <span>${CURRENCY_SYMBOL}${total.toFixed(2)}</span>
                     </div>
