@@ -1483,17 +1483,11 @@
                 </form>
             </div>
             
-            <div class="mt-6 pt-4 border-t border-gray-200 space-y-3">
+            <div class="mt-6 pt-4 border-t border-gray-200">
                 <p class="text-center text-sm text-gray-500 mb-3">OR continue with</p>
-                
                 <button id="google-sign-in-btn" class="w-full py-2.5 flex items-center justify-center bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
                     <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762591113/images_1_dxmcrp.png" alt="Google logo" class="w-5 h-5 mr-3">
                     Sign in with Google
-                </button>
-
-                <button id="facebook-sign-in-btn" class="w-full py-2.5 flex items-center justify-center bg-[#1877F2] text-white font-semibold rounded-lg shadow-sm hover:bg-[#166fe5] transition-colors">
-                    <i class="ph ph-facebook-logo text-xl mr-3"></i>
-                    Sign in with Facebook
                 </button>
             </div>
         </div>
@@ -1601,8 +1595,7 @@
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword,     
             signOut,                         
-            GoogleAuthProvider,  
-            FacebookAuthProvider,           
+            GoogleAuthProvider,             
             signInWithPopup                 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
@@ -4026,40 +4019,6 @@
                 }
             }
         }
-
-        async function handleFacebookSignIn() {
-            const fbBtn = document.getElementById('facebook-sign-in-btn');
-            if (fbBtn) {
-                    fbBtn.disabled = true;
-                    fbBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Connecting...';
-            }
-            
-            hideAuthModal(); 
-            try {
-                const provider = new FacebookAuthProvider();
-                await signInWithPopup(auth, provider);
-                
-                showModal("Success!", `Welcome to RareShop via Facebook!`);
-
-            } catch (error) {
-                let message = "Facebook Sign-in failed.";
-                if (error.code === 'auth/account-exists-with-different-credential') {
-                    message = "You already have an account with the email used on Facebook. Please sign in with that method first.";
-                } else if (error.code === 'auth/popup-closed-by-user') {
-                    message = "Sign-in cancelled.";
-                } else {
-                    message = `Sign-in failed: ${error.message}`;
-                }
-                
-                console.error("Facebook Sign-in Error:", error);
-                showModal("Sign-in Error", message);
-            } finally {
-                if (fbBtn) {
-                    fbBtn.disabled = false;
-                    fbBtn.innerHTML = '<i class="ph ph-facebook-logo text-xl mr-3"></i> Sign in with Facebook';
-                }
-            }
-        }
         
         async function handleLogout() {
             try {
@@ -4297,10 +4256,6 @@
                 });
                 
                 googleSignInBtn.addEventListener('click', handleGoogleSignIn);
-                const facebookBtn = document.getElementById('facebook-sign-in-btn');
-                if (facebookBtn) {
-                    facebookBtn.addEventListener('click', handleFacebookSignIn);
-                }
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
