@@ -387,10 +387,6 @@
         <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 dark:text-white dark:border-gray-700">Customer Menu</h3>
         
         <nav class="space-y-4">
-            <a href="#" id="sidebar-home-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
-                <i class="ph ph-house text-2xl mr-3"></i>
-                Home
-            </a>
             <a href="#" id="sidebar-track-order-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
                 <i class="ph ph-package text-2xl mr-3"></i>
                 Track Order
@@ -1487,11 +1483,17 @@
                 </form>
             </div>
             
-            <div class="mt-6 pt-4 border-t border-gray-200">
+            <div class="mt-6 pt-4 border-t border-gray-200 space-y-3">
                 <p class="text-center text-sm text-gray-500 mb-3">OR continue with</p>
+                
                 <button id="google-sign-in-btn" class="w-full py-2.5 flex items-center justify-center bg-white border border-gray-300 text-gray-700 font-semibold rounded-lg shadow-sm hover:bg-gray-50 transition-colors">
                     <img src="https://res.cloudinary.com/dqr2ewypl/image/upload/v1762591113/images_1_dxmcrp.png" alt="Google logo" class="w-5 h-5 mr-3">
                     Sign in with Google
+                </button>
+
+                <button id="facebook-sign-in-btn" class="w-full py-2.5 flex items-center justify-center bg-[#1877F2] text-white font-semibold rounded-lg shadow-sm hover:bg-[#166fe5] transition-colors">
+                    <i class="ph ph-facebook-logo text-xl mr-3"></i>
+                    Sign in with Facebook
                 </button>
             </div>
         </div>
@@ -1599,10 +1601,9 @@
             createUserWithEmailAndPassword, 
             signInWithEmailAndPassword,     
             signOut,                         
-            GoogleAuthProvider,             
-            signInWithPopup,
-            setPersistence,
-            browserLocalPersistence                 
+            GoogleAuthProvider,  
+            FacebookAuthProvider,           
+            signInWithPopup                 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         // Import Firestore modules
@@ -4025,6 +4026,40 @@
                 }
             }
         }
+
+        async function handleFacebookSignIn() {
+            const fbBtn = document.getElementById('facebook-sign-in-btn');
+            if (fbBtn) {
+                    fbBtn.disabled = true;
+                    fbBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Connecting...';
+            }
+            
+            hideAuthModal(); 
+            try {
+                const provider = new FacebookAuthProvider();
+                await signInWithPopup(auth, provider);
+                
+                showModal("Success!", `Welcome to RareShop via Facebook!`);
+
+            } catch (error) {
+                let message = "Facebook Sign-in failed.";
+                if (error.code === 'auth/account-exists-with-different-credential') {
+                    message = "You already have an account with the email used on Facebook. Please sign in with that method first.";
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    message = "Sign-in cancelled.";
+                } else {
+                    message = `Sign-in failed: ${error.message}`;
+                }
+                
+                console.error("Facebook Sign-in Error:", error);
+                showModal("Sign-in Error", message);
+            } finally {
+                if (fbBtn) {
+                    fbBtn.disabled = false;
+                    fbBtn.innerHTML = '<i class="ph ph-facebook-logo text-xl mr-3"></i> Sign in with Facebook';
+                }
+            }
+        }
         
         async function handleLogout() {
             try {
@@ -4082,45 +4117,35 @@
                 // 📢 NEW: Initialize Supabase after Firebase
                 initializeSupabase();
 
-                // 📢 NEW: Set Persistence to LOCAL (Lifetime Login)
-                // This ensures the user stays logged in even after refresh/closing tab
-                await setPersistence(auth, browserLocalPersistence);
+                // 2. Initial Auth Setup (Anonymously or with custom token)
+                if (authTokenFromEnv) {
+                    await signInWithCustomToken(auth, authTokenFromEnv);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-                // 2. Listen for Auth State Changes
-                // This is where we decide if we need to log them in or if they are already logged in
+                // 3. Listen for Auth State Changes (This is the critical block)
                 onAuthStateChanged(auth, (user) => {
-                    
-                    if (!user) {
-                        // NO USER FOUND? Sign in Anonymously (Guest Mode)
-                        // Only do this if no one is currently logged in.
-                        if (authTokenFromEnv) {
-                             signInWithCustomToken(auth, authTokenFromEnv);
-                        } else {
-                             signInAnonymously(auth).catch((error) => {
-                                console.error("Anon Login Error:", error);
-                             });
-                        }
-                        return; // Stop here, wait for the listener to fire again with the new user
-                    }
-
-                    // USER IS LOGGED IN (Google, Email, or Guest)
                     loggedInUser = user;
                     
-                    userId = user.uid;
+                    userId = user ? user.uid : (userIdFromEnv || crypto.randomUUID());
                     
                     userIdDisplay.textContent = `User ID (for Firestore Path): ${userId.substring(0, 8)}... | App ID: ${appId}`;
                     
                     renderAuthStatus(user);
 
-                    // Start listeners
-                    listenToCart();
-                    listenToWishlist();
+                    if (user && user.uid) {
+                        listenToCart();
+                        listenToWishlist(); // ADDED: Start listening to wishlist
+                    } else {
+                         cartItemCountEl.textContent = '0';
+                         headerWishlistCountEl.textContent = '0'; // ADDED: Reset wishlist count
+                         sidebarWishlistCountEl.textContent = '0';
+                    }
                     
                     if (appState === 'home') {
                         renderHomeView();
                     }
-
-                    // --- SEARCH LOGIC (Preserved) ---
                     let globalSearchCache = [];
 
                     async function cacheProductsForSearch() {
@@ -4129,172 +4154,153 @@
                             const snapshot = await getDocs(q);
                             globalSearchCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                             console.log("Search cache loaded:", globalSearchCache.length, "products");
-                        } catch (error) {
-                            console.error("Error caching products for search:", error);
-                        }
-                    }
-
-                    cacheProductsForSearch();
-
-                    function handleLiveInput(e, resultsId) {
-                        const queryTerm = e.target.value.toLowerCase().trim();
-                        const resultsContainer = document.getElementById(resultsId);
-
-                        if (!queryTerm) {
-                            resultsContainer.classList.add('hidden');
-                            resultsContainer.innerHTML = '';
-                            return;
+                            } catch (error) {
+                                console.error("Error caching products for search:", error);
+                            }
                         }
 
-                        const matches = globalSearchCache.filter(product => {
-                            const nameMatch = product.name ? product.name.toLowerCase().includes(queryTerm) : false;
-                            const categoryMatch = product.category ? product.category.toLowerCase().includes(queryTerm) : false;
-                            return nameMatch || categoryMatch;
-                        });
+                        cacheProductsForSearch();
 
-                        renderDropdownResults(matches, resultsContainer);
-                    }
+                        function handleLiveInput(e, resultsId) {
+                            const queryTerm = e.target.value.toLowerCase().trim();
+                            const resultsContainer = document.getElementById(resultsId);
 
-                    function renderDropdownResults(products, container) {
-                        container.innerHTML = '';
-                        if (products.length === 0) {
-                            container.innerHTML = `<div class="p-4 text-center text-gray-500 text-sm">No matches found</div>`;
-                        } else {
-                            products.slice(0, 6).forEach(product => {
-                                const price = product.discountPrice || product.price || 0;
-                                const el = document.createElement('div');
-                                el.className = 'flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors dark:hover:bg-gray-700 dark:border-gray-700';
+                            if (!queryTerm) {
+                                resultsContainer.classList.add('hidden');
+                                resultsContainer.innerHTML = '';
+                                return;
+                            }
 
-                                el.innerHTML = `
-                                    <img src="${product.image || 'https://placehold.co/50'}" class="w-12 h-12 object-cover rounded-md bg-gray-200 flex-shrink-0">
-                                    <div class="ml-3 flex-1 min-w-0">
-                                        <p class="text-sm font-medium text-gray-800 truncate dark:text-gray-200">${product.name}</p>
-                                        <p class="text-xs font-bold text-orange-600">${CURRENCY_SYMBOL}${price.toFixed(2)}</p>
-                                    </div>
-                                `;
-
-                                el.addEventListener('click', () => {
-                                    container.classList.add('hidden');
-                                    showProductDetail(product.id);
+                            const matches = globalSearchCache.filter(product => {
+                                const nameMatch = product.name ? product.name.toLowerCase().includes(queryTerm) : false;
+                                const categoryMatch = product.category ? product.category.toLowerCase().includes(queryTerm) : false;
+                                return nameMatch || categoryMatch;
                                 });
 
-                                container.appendChild(el);
-                            });
-                        }
-                        container.classList.remove('hidden');
-                    }
+                                renderDropdownResults(matches, resultsContainer);
+                                }
 
-                    // Close search on outside click
-                    document.addEventListener('click', (e) => {
-                        const desktopResults = document.getElementById('desktop-search-results');
-                        const mobileResults = document.getElementById('mobile-search-results');
-                        const desktopInput = document.getElementById('desktop-search-input');
-                        const mobileInput = document.getElementById('mobile-search-input');
-                        
-                        if (desktopResults && !desktopResults.contains(e.target) && e.target !== desktopInput) {
-                            desktopResults.classList.add('hidden');
-                        }
-                        if (mobileResults && !mobileResults.contains(e.target) && e.target !== mobileInput) {
-                            mobileResults.classList.add('hidden');
-                        }
-                    });
+                                function renderDropdownResults(products, container) {
+                                    container.innerHTML = '';
+                                    if (products.length === 0) {
+                                        container.innerHTML = `
+                                        <div class="p-4 text-center text-gray-500 text-sm">No matches found</div>
+                                        `;
+                                        } else {
 
-                    async function handleEnterSearch(e, inputId) {
-                        e.preventDefault();
-                        const val = document.getElementById(inputId).value;
-                        if(val) showProductListingSearch(val);
-                    }
+                                            products.slice(0, 6).forEach(product => {
+                                                const price = product.discountPrice || product.price || 0;
+                                                const el = document.createElement('div');
+                                                el.className = 'flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 transition-colors dark:hover:bg-gray-700 dark:border-gray-700';
 
-                    function showProductListingSearch(term) {
-                        resetBodyScroll();
-                        clearListeners();
-                        appState = 'search';
-                        const template = document.getElementById('listing-view-template');
-                        const clone = document.importNode(template.content, true);
-                        mainContentContainer.innerHTML = '';
-                        mainContentContainer.appendChild(clone);
+                                                el.innerHTML = `
+                                                <img src="${product.image || 'https://placehold.co/50'}" class="w-12 h-12 object-cover rounded-md bg-gray-200 flex-shrink-0">
+                                                <div class="ml-3 flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-800 truncate dark:text-gray-200">${product.name}</p>
+                                                    <p class="text-xs font-bold text-orange-600">${CURRENCY_SYMBOL}${price.toFixed(2)}</p>
+                                                    </div>
+                                                    `;
 
-                        document.getElementById('listing-page-title').textContent = `Results for "${term}"`;
-                        document.getElementById('back-to-home-btn-listing').addEventListener('click', renderHomeView);
 
-                        const grid = document.getElementById('listing-products-grid');
-                        
-                        // Simple filter from cache
-                        const matches = globalSearchCache.filter(p =>
-                            (p.name && p.name.toLowerCase().includes(term.toLowerCase())) ||
-                            (p.category && p.category.toLowerCase().includes(term.toLowerCase()))
-                        );
-                        
-                        renderProducts(matches, grid, null, `No results found for "${term}"`, true);
+                                                    el.addEventListener('click', () => {
+                                                        container.classList.add('hidden');
+                                                        showProductDetail(product.id);
+                                                        });
 
-                        document.getElementById('desktop-search-results')?.classList.add('hidden');
-                        document.getElementById('mobile-search-results')?.classList.add('hidden');
-                    }
-                    
-                    const desktopInput = document.getElementById('desktop-search-input');
-                    const mobileInput = document.getElementById('mobile-search-input');
-                    const desktopForm = document.getElementById('desktop-search-form');
-                    const mobileForm = document.getElementById('mobile-search-form');
+                                                        container.appendChild(el);
+                                                        });
+                                                    }
+                                                    container.classList.remove('hidden');
+                                                }
 
-                    // Remove old listeners to prevent duplicates if re-run (safety)
-                    const newDesktopInput = desktopInput.cloneNode(true);
-                    if(desktopInput.parentNode) desktopInput.parentNode.replaceChild(newDesktopInput, desktopInput);
-                    
-                    const newMobileInput = mobileInput.cloneNode(true);
-                    if(mobileInput.parentNode) mobileInput.parentNode.replaceChild(newMobileInput, mobileInput);
+                                                document.addEventListener('click', (e) => {
+                                                    const desktopResults = document.getElementById('desktop-search-results');
+                                                    const mobileResults = document.getElementById('mobile-search-results');
+                                                    const desktopInput = document.getElementById('desktop-search-input');
+                                                    const mobileInput = document.getElementById('mobile-search-input');
+                                                    
+                                                    if (desktopResults && !desktopResults.contains(e.target) && e.target !== desktopInput) {
+                                                        desktopResults.classList.add('hidden');
+                                                    }
+                                                    if (mobileResults && !mobileResults.contains(e.target) && e.target !== mobileInput) {
+                                                        mobileResults.classList.add('hidden');
+                                                    }
+                                                });
 
-                    // Re-attach search listeners
-                    if (newDesktopInput) {
-                        newDesktopInput.addEventListener('input', (e) => handleLiveInput(e, 'desktop-search-results'));
-                        newDesktopInput.addEventListener('focus', (e) => handleLiveInput(e, 'desktop-search-results'));
-                    }
-                    if (newMobileInput) {
-                        newMobileInput.addEventListener('input', (e) => handleLiveInput(e, 'mobile-search-results'));
-                        newMobileInput.addEventListener('focus', (e) => handleLiveInput(e, 'mobile-search-results'));
-                    }
+                                                async function handleEnterSearch(e, inputId) {
+                                                    e.preventDefault();
+                                                    const val = document.getElementById(inputId).value;
+                                                    // Simply hide the dropdown and perform the full page search (logic from previous step)
+                                                    // We can reuse the filtering logic or just show the listing page
+                                                    if(val) showProductListingSearch(val);
+                                                }
 
-                    if (desktopForm) {
-                        const newDesktopForm = desktopForm.cloneNode(true);
-                        desktopForm.parentNode.replaceChild(newDesktopForm, desktopForm);
-                        newDesktopForm.addEventListener('submit', (e) => handleEnterSearch(e, 'desktop-search-input'));
-                    }
-                    if (mobileForm) {
-                        const newMobileForm = mobileForm.cloneNode(true);
-                        mobileForm.parentNode.replaceChild(newMobileForm, mobileForm);
-                        newMobileForm.addEventListener('submit', (e) => handleEnterSearch(e, 'mobile-search-input'));
-                    }
+                                                function showProductListingSearch(term) {
+                                                    resetBodyScroll();
+                                                    clearListeners();
+                                                    appState = 'search';
+                                                    const template = document.getElementById('listing-view-template');
+                                                    const clone = document.importNode(template.content, true);
+                                                    mainContentContainer.innerHTML = '';
+                                                    mainContentContainer.appendChild(clone);
+
+                                                    document.getElementById('listing-page-title').textContent = `Results for "${term}"`;
+                                                    document.getElementById('back-to-home-btn-listing').addEventListener('click', renderHomeView);
+
+                                                    const grid = document.getElementById('listing-products-grid');
+                                                    const matches = globalSearchCache.filter(p =>
+                                                    (p.name && p.name.toLowerCase().includes(term.toLowerCase())) ||
+                                                    (p.category && p.category.toLowerCase().includes(term.toLowerCase()))
+                                                    );
+
+                                                    document.getElementById('desktop-search-results')?.classList.add('hidden');
+                                                    document.getElementById('mobile-search-results')?.classList.add('hidden');
+
+                                                }
+                                                
+                                                const desktopInput = document.getElementById('desktop-search-input');
+                                                const mobileInput = document.getElementById('mobile-search-input');
+                                                const desktopForm = document.getElementById('desktop-search-form');
+                                                const mobileForm = document.getElementById('mobile-search-form');
+
+                                                if (desktopInput) {
+                                                    desktopInput.addEventListener('input', (e) => handleLiveInput(e, 'desktop-search-results'));
+                                                    desktopInput.addEventListener('focus', (e) => handleLiveInput(e, 'desktop-search-results')); // Show on click if text exists
+                                                }
+                                                if (mobileInput) {
+                                                    mobileInput.addEventListener('input', (e) => handleLiveInput(e, 'mobile-search-results'));
+                                                    mobileInput.addEventListener('focus', (e) => handleLiveInput(e, 'mobile-search-results'));
+                                                }
+
+                                                if (desktopForm) desktopForm.addEventListener('submit', (e) => handleEnterSearch(e, 'desktop-search-input'));
+                                                if (mobileForm) mobileForm.addEventListener('submit', (e) => handleEnterSearch(e, 'mobile-search-input'));
                 });
                 
                 // 4. Setup Auth Modal Listeners
-                // Remove old listeners first to be safe
-                const newAuthModalCloseBtn = authModalCloseBtn.cloneNode(true);
-                authModalCloseBtn.parentNode.replaceChild(newAuthModalCloseBtn, authModalCloseBtn);
-                newAuthModalCloseBtn.addEventListener('click', hideAuthModal);
+                authModalCloseBtn.addEventListener('click', hideAuthModal);
                 
                 tabLogin.addEventListener('click', () => showAuthModal('login'));
                 tabSignup.addEventListener('click', () => showAuthModal('signup'));
 
-                const newLoginForm = loginForm.cloneNode(true);
-                loginForm.parentNode.replaceChild(newLoginForm, loginForm);
-                newLoginForm.addEventListener('submit', (e) => {
+                loginForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const email = newLoginForm.elements['login-email'].value;
-                    const password = newLoginForm.elements['login-password'].value;
+                    const email = loginForm.elements['login-email'].value;
+                    const password = loginForm.elements['login-password'].value;
                     handleLogin(email, password);
                 });
 
-                const newSignupForm = signupForm.cloneNode(true);
-                signupForm.parentNode.replaceChild(newSignupForm, signupForm);
-                newSignupForm.addEventListener('submit', (e) => {
+                signupForm.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    const email = newSignupForm.elements['signup-email'].value;
-                    const password = newSignupForm.elements['signup-password'].value;
+                    const email = signupForm.elements['signup-email'].value;
+                    const password = signupForm.elements['signup-password'].value;
                     handleSignUp(email, password);
                 });
                 
-                const newGoogleBtn = googleSignInBtn.cloneNode(true);
-                googleSignInBtn.parentNode.replaceChild(newGoogleBtn, googleSignInBtn);
-                newGoogleBtn.addEventListener('click', handleGoogleSignIn);
+                googleSignInBtn.addEventListener('click', handleGoogleSignIn);
+                const facebookBtn = document.getElementById('facebook-sign-in-btn');
+                if (facebookBtn) {
+                    facebookBtn.addEventListener('click', handleFacebookSignIn);
+                }
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
@@ -4322,13 +4328,6 @@
         document.getElementById('header-wishlist-link').addEventListener('click', (e) => {
             e.preventDefault();
             showWishlistView();
-        });
-
-        // Listener for the new Sidebar Home Link
-        document.getElementById('sidebar-home-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            toggleSidebar(); // Close sidebar
-            renderHomeView(); // Go to home
         });
 
         document.getElementById('sidebar-track-order-link').addEventListener('click', (e) => {
