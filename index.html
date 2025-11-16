@@ -2642,7 +2642,10 @@ if (loggedInUser && loggedInUser.uid) {
                     selectedPaymentMethod = logo.getAttribute('data-method');
                     
                     instructionsHeading.textContent = logo.getAttribute('data-heading');
-                    instructionsText.textContent = logo.getAttribute('data-instructions');
+                    
+                    // NEW LINE: Replaces the text "\n" with a real line break
+                    instructionsText.textContent = logo.getAttribute('data-instructions').replace(/\\n/g, '\n');
+                    
                     instructionsContainer.classList.remove('hidden');
                     
                     updateBuyNowButtonState();
