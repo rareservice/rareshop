@@ -387,6 +387,16 @@
         <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2 dark:text-white dark:border-gray-700">Customer Menu</h3>
         
         <nav class="space-y-4">
+            <a href="#" id="sidebar-home-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
+                <i class="ph ph-house text-2xl mr-3"></i>
+                Home
+            </a>
+        <nav class="space-y-4">
+            <a href="#" id="sidebar-profile-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
+                <i class="ph ph-user-circle text-2xl mr-3"></i>
+                My Profile
+            </a>
+
             <a href="#" id="sidebar-track-order-link" class="flex items-center text-lg font-medium text-gray-700 hover:text-orange-600 dark:text-gray-300 dark:hover:text-orange-500">
                 <i class="ph ph-package text-2xl mr-3"></i>
                 Track Order
@@ -676,6 +686,77 @@
         </div>
     </template>
     
+    <template id="profile-view-template">
+    <div class="max-w-4xl mx-auto">
+        <button id="back-to-home-btn-profile" class="mb-8 flex items-center text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium transition-colors">
+            <i class="ph ph-arrow-left text-xl mr-2"></i> Back to Home
+        </button>
+        
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-8 border-b pb-4 dark:border-gray-700">My Profile</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="md:col-span-1">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 text-center">
+                    <div class="w-24 h-24 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl font-bold uppercase" id="profile-avatar-placeholder">
+                        U
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white" id="profile-display-email">user@example.com</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Customer</p>
+                    
+                    <button id="profile-logout-btn" class="mt-6 w-full py-2 border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors dark:border-red-900 dark:hover:bg-gray-700">
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:col-span-2">
+                <div class="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-xl shadow-md border border-gray-200 dark:border-gray-700">
+                    <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6">Personal Details & Shipping</h3>
+                    <form id="profile-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">First Name</label>
+                                <input type="text" id="profile-first-name" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Last Name</label>
+                                <input type="text" id="profile-last-name" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
+                            <input type="tel" id="profile-phone" class="form-input" placeholder="03XX-XXXXXXX">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
+                            <input type="text" id="profile-address" class="form-input">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">City</label>
+                                <input type="text" id="profile-city" class="form-input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Postal Code</label>
+                                <input type="text" id="profile-zip" class="form-input">
+                            </div>
+                        </div>
+
+                        <div class="pt-4">
+                            <button type="submit" id="save-profile-btn" class="px-6 py-3 bg-orange-600 text-white font-semibold rounded-lg shadow-md hover:bg-orange-700 transition-colors">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
     <template id="checkout-view-template">
         <div class="max-w-6xl mx-auto">
             <a href="#" id="return-to-cart-link" class="mb-4 inline-flex items-center text-gray-600 dark:text-gray-300 hover:text-orange-600 font-medium transition-colors">
@@ -2439,6 +2520,29 @@
                 contactEmailInput.readOnly = true; 
                 contactEmailInput.classList.add('bg-gray-100');
             }
+
+            // --- Auto-fill from Profile ---
+if (loggedInUser && loggedInUser.uid) {
+    try {
+        const userDocRef = doc(db, `artifacts/${appId}/users/${loggedInUser.uid}`);
+        getDoc(userDocRef).then((docSnap) => {
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                if(document.getElementById('shipping-first-name')) document.getElementById('shipping-first-name').value = data.firstName || '';
+                if(document.getElementById('shipping-last-name')) document.getElementById('shipping-last-name').value = data.lastName || '';
+                if(document.getElementById('shipping-address')) document.getElementById('shipping-address').value = data.address || '';
+                if(document.getElementById('shipping-city')) document.getElementById('shipping-city').value = data.city || '';
+                if(document.getElementById('shipping-postal-code')) document.getElementById('shipping-postal-code').value = data.postalCode || '';
+                if(document.getElementById('shipping-phone')) document.getElementById('shipping-phone').value = data.phone || '';
+                
+                // Trigger validation update after auto-fill
+                const form = document.getElementById('checkout-form');
+                if(form) form.dispatchEvent(new Event('input')); 
+            }
+        }).catch(err => console.log("Auto-fill error", err));
+    } catch (e) { console.log("Error getting user data", e); }
+}
+// --- End Auto-fill ---
             
             const total = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById('checkout-buy-now-btn').textContent = `Place Order (${CURRENCY_SYMBOL}${total.toFixed(2)})`;
@@ -4034,14 +4138,39 @@
             authStatusContainer.innerHTML = ''; 
             
             if (user && user.email) {
-                const emailSnippet = user.email.length > 20 ? user.email.substring(0, 20) + '...' : user.email;
+                // 1. Default to the username part of the email (e.g., "khanidua34")
+                let displayName = user.email.split('@')[0]; 
+                
+                // Changed: Use displayName instead of emailSnippet
                 authStatusContainer.innerHTML = `
-                    <span class="text-sm font-medium text-gray-700 hidden sm:inline dark:text-gray-300" title="${user.email}">${emailSnippet}</span>
-                    <button id="header-logout-btn" class="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600">
+                    <a href="#" id="header-profile-link" class="text-sm font-medium text-gray-700 hidden sm:inline dark:text-gray-300 hover:text-orange-600 flex items-center" title="My Profile">
+                        <i class="ph ph-user-circle text-xl mr-1"></i> ${displayName}
+                    </a>
+                    <button id="header-logout-btn" class="px-3 py-1 bg-gray-100 text-sm font-medium text-gray-700 rounded-md hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 ml-2">
                         Logout
                     </button>
                 `;
+                
                 document.getElementById('header-logout-btn').addEventListener('click', handleLogout);
+                document.getElementById('header-profile-link').addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showProfileView();
+                });
+
+                // 2. Background Fetch: Check if they have a saved First Name in their profile
+                try {
+                    const userDocRef = doc(db, `artifacts/${appId}/users/${user.uid}`);
+                    getDoc(userDocRef).then((docSnap) => {
+                        if (docSnap.exists() && docSnap.data().firstName) {
+                            const realName = docSnap.data().firstName;
+                            const profileLink = document.getElementById('header-profile-link');
+                            // Update the header with the real name
+                            if (profileLink) {
+                                profileLink.innerHTML = `<i class="ph ph-user-circle text-xl mr-1"></i> ${realName}`;
+                            }
+                        }
+                    });
+                } catch (err) { console.log("Silent profile fetch error", err); }
 
             } else {
                 authStatusContainer.innerHTML = `
@@ -4059,6 +4188,127 @@
                 });
             }
         }
+
+        /**
+         * Renders the User Profile View
+         */
+        async function showProfileView() {
+            resetBodyScroll();
+
+            // Note: We allow anonymous users to see this view so they can click "Sign In"
+            if (!loggedInUser) {
+                showModal("Login Required", "Please log in to view your profile.");
+                showAuthModal('login');
+                return;
+            }
+
+            clearListeners(); 
+            appState = 'profile';
+            
+            const template = document.getElementById('profile-view-template');
+            if (!template) return;
+            
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            // --- 1. CHECK IF USER IS GUEST (ANONYMOUS) ---
+            const isGuest = loggedInUser.isAnonymous;
+            const actionBtn = document.getElementById('profile-logout-btn');
+
+            if (isGuest) {
+                // --- GUEST MODE: Show "Sign In" Button ---
+                document.getElementById('profile-display-email').textContent = "Guest User";
+                document.getElementById('profile-avatar-placeholder').textContent = "G";
+                
+                // Change button style from Red (Logout) to Orange (Login)
+                actionBtn.textContent = "Sign In";
+                // Remove red classes
+                actionBtn.className = ""; 
+                // Add orange primary button classes
+                actionBtn.className = "mt-6 w-full py-2 bg-orange-600 text-white font-semibold rounded-lg shadow-md hover:bg-orange-700 transition-colors";
+                
+                // Set action to open Login Modal
+                actionBtn.onclick = () => showAuthModal('login');
+
+            } else {
+                // --- MEMBER MODE: Show "Sign Out" Button ---
+                document.getElementById('profile-display-email').textContent = loggedInUser.email;
+                document.getElementById('profile-avatar-placeholder').textContent = loggedInUser.email.charAt(0).toUpperCase();
+                
+                // Keep default red styling for logout
+                actionBtn.addEventListener('click', handleLogout);
+            }
+
+            // Navigation Listeners
+            document.getElementById('back-to-home-btn-profile').addEventListener('click', renderHomeView);
+            
+            if (mobileSidebar.classList.contains('open')) toggleSidebar();
+
+            // Fetch and Populate Data
+            try {
+                const userDocRef = doc(db, `artifacts/${appId}/users/${loggedInUser.uid}`);
+                const docSnap = await getDoc(userDocRef);
+                
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    document.getElementById('profile-first-name').value = data.firstName || '';
+                    document.getElementById('profile-last-name').value = data.lastName || '';
+                    document.getElementById('profile-phone').value = data.phone || '';
+                    document.getElementById('profile-address').value = data.address || '';
+                    document.getElementById('profile-city').value = data.city || '';
+                    document.getElementById('profile-zip').value = data.postalCode || '';
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+            }
+
+            // --- 2. HANDLE SAVE WITH LOGIN CHECK ---
+            document.getElementById('profile-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // BLOCK SAVING IF GUEST
+                if (isGuest) {
+                    showModal("Sign In Required", "You must be signed in to save your profile details.");
+                    showAuthModal('login');
+                    return;
+                }
+
+                const btn = document.getElementById('save-profile-btn');
+                const originalText = btn.textContent;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Saving...';
+
+                const userData = {
+                    firstName: document.getElementById('profile-first-name').value,
+                    lastName: document.getElementById('profile-last-name').value,
+                    phone: document.getElementById('profile-phone').value,
+                    address: document.getElementById('profile-address').value,
+                    city: document.getElementById('profile-city').value,
+                    postalCode: document.getElementById('profile-zip').value,
+                    updatedAt: new Date()
+                };
+
+                try {
+                    const userDocRef = doc(db, `artifacts/${appId}/users/${loggedInUser.uid}`);
+                    await setDoc(userDocRef, userData, { merge: true });
+                    showModal("Success", "Profile updated successfully!");
+                } catch (error) {
+                    console.error("Error saving profile:", error);
+                    showModal("Error", "Failed to save profile. Please try again.");
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            });
+        }
+
+// --- Add Sidebar Listener for Profile ---
+// Add this near the bottom of your script where other listeners are
+document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    showProfileView();
+});
 
         // --- Initialize App and Auth ---
         
@@ -4330,6 +4580,14 @@
         document.getElementById('footer-tos-link').addEventListener('click', (e) => {
             e.preventDefault();
             renderTosView();
+        });
+
+        // --- Sidebar Home Link Listener ---
+        // This makes the Home button in the sidebar work
+        document.getElementById('sidebar-home-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            toggleSidebar(); // Close the sidebar menu
+            renderHomeView(); // Load the homepage
         });
 
         // --- Run the App ---
