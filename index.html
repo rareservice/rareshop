@@ -1823,6 +1823,33 @@
             return isSaleActive ? (product.discountPrice || 0) : (product.price || 0);
         }
 
+                /**
+                 * Returns true if the product has an active sale.
+                 * Logic: (Discount Exists) AND (No Timer OR Timer is in Future)
+                 */
+                function isSaleActiveFor(product) {
+                    if (!product) return false;
+                    
+                    const discountPrice = (typeof product.discountPrice === 'number' ? product.discountPrice : (product.discountPrice ? Number(product.discountPrice) : 0));
+                    const originalPrice = (product.price || 0);
+
+                    // 1. Basic Check: Discount must be valid and less than original price
+                    if (!(discountPrice > 0 && discountPrice < originalPrice)) return false;
+
+                    const saleEndTimeRaw = product.saleEndTime;
+
+                    // 2. No Timer Check: If no timer is set, the sale is PERMANENT (Active)
+                    if (!saleEndTimeRaw) return true; 
+
+                    // 3. Timer Check: If timer is set, check if it's still running
+                    const saleEnd = saleEndTimeRaw && saleEndTimeRaw.toDate ? saleEndTimeRaw.toDate() : new Date(saleEndTimeRaw);
+                    
+                    // Invalid date? Treat as no timer (Active) or expired? Let's treat invalid dates as inactive to be safe.
+                    if (!(saleEnd instanceof Date) || Number.isNaN(saleEnd.getTime())) return false;
+
+                    return saleEnd.getTime() > Date.now();
+                }
+
         /**
          * Returns a human-readable time difference string.
          */
@@ -3404,7 +3431,7 @@ if (loggedInUser && loggedInUser.uid) {
                 const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
                 
                 const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
-                const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
+                const isSaleActive = (discountPrice > 0 && discountPrice < (product.price || 0)) && (!saleEndTime || saleEndTime.getTime() > new Date().getTime());
                 
                 // Note: Stock might not be present if coming from the light-weight wishlist doc.
                 // We assume stock check mainly happens during cart/checkout for efficiency.
@@ -3726,9 +3753,8 @@ if (loggedInUser && loggedInUser.uid) {
 
             const originalPrice = (product.price || 0).toFixed(2);
             const discountPrice = (product.discountPrice > 0 ? product.discountPrice : null);
-            
-            const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate() : new Date(product.saleEndTime)) : null;
-            const isSaleActive = saleEndTime && saleEndTime.getTime() > new Date().getTime() && discountPrice;
+                
+                const isSaleActive = isSaleActiveFor(product);
             
             const currentStock = product.stock || 0;
             const isOutOfStock = currentStock <= 0;
