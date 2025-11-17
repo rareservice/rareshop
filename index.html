@@ -1699,7 +1699,8 @@
             deleteDoc,
             orderBy, 
             limit,
-            runTransaction 
+            runTransaction, 
+            serverTimestamp
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // 📢 NEW: Import Supabase for Storage
@@ -1895,6 +1896,37 @@
             if (seconds < 10) return "just now";
 
             return Math.floor(seconds) + " seconds ago";
+        }
+
+        // --- ADD THIS ENTIRE NEW FUNCTION ---
+
+        /**
+         * Creates or updates a user document in the 'users' collection.
+         * This adds their email/name, making the document "visible" to your admin panel.
+         */
+        async function createUserDocument(user) {
+          // This uses the 'appId' and 'db' variables already defined in your script
+          const userDocRef = doc(db, "artifacts", appId, "users", user.uid);
+          
+          const userData = {
+            email: user.email,
+            lastLogin: serverTimestamp(), // Save the time they logged in
+            displayName: user.displayName || null // Save their name if they use Google
+          };
+
+          try {
+            // Use { merge: true }
+            // This is the most important part!
+            // It adds/updates these fields
+            // WITHOUT deleting the `cart` or `wishlist` subcollections.
+            await setDoc(userDocRef, userData, { merge: true });
+            
+            console.log("User document created/updated:", user.uid);
+            
+          } catch (error) {
+            // We don't show a popup, just log it.
+            console.error("Error creating user document:", error);
+          }
         }
 
 
@@ -4502,6 +4534,12 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
                     if (user) {
                         // --- USER FOUND (Restored Session or Just Logged In) ---
                         loggedInUser = user;
+
+                        // --- ADD THIS LINE ---
+                        // This saves their email to Firestore so the admin panel can see them.
+                        if (user.email) { // Only run for real users, not guests
+                            createUserDocument(user);
+                        }
                         
                         // Set User ID for database paths
                         userId = user.uid;
