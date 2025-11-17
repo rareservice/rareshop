@@ -1813,14 +1813,37 @@
         /**
          * Calculates the product's effective price (discounted if sale is active).
          */
+        /**
+         * Calculates the product's effective price (discounted if sale is active).
+         * Updated to support Permanent Discounts (No Timer).
+         */
         function getEffectivePrice(product) {
+            const discountPrice = (typeof product.discountPrice === 'number' ? product.discountPrice : (product.discountPrice ? Number(product.discountPrice) : 0));
+            const originalPrice = (product.price || 0);
+
+            // 1. If discount is invalid or greater than original, return original
+            if (!(discountPrice > 0 && discountPrice < originalPrice)) {
+                return originalPrice;
+            }
+
+            // 2. Check Timer Logic
+            const saleEndTimeRaw = product.saleEndTime;
+            
+            // If NO timer is set, the discount is PERMANENT -> Return Discount Price
+            if (!saleEndTimeRaw) {
+                return discountPrice;
+            }
+
+            // If timer IS set, check if it is still valid
             const now = new Date().getTime();
+            const saleEndTime = saleEndTimeRaw.toDate ? saleEndTimeRaw.toDate().getTime() : new Date(saleEndTimeRaw).getTime();
             
-            const saleEndTime = product.saleEndTime ? (product.saleEndTime.toDate ? product.saleEndTime.toDate().getTime() : new Date(product.saleEndTime).getTime()) : null;
-            
-            const isSaleActive = saleEndTime && saleEndTime > now && product.discountPrice > 0;
-            
-            return isSaleActive ? (product.discountPrice || 0) : (product.price || 0);
+            if (saleEndTime > now) {
+                return discountPrice;
+            }
+
+            // Timer expired -> Return Original Price
+            return originalPrice;
         }
 
                 /**
@@ -2150,11 +2173,16 @@
                 } else {
                     // Add to wishlist
                     // We only need basic product data in the wishlist collection to display the card
+                    // Add to wishlist
                     await setDoc(itemRef, {
                         productId: productId,
                         name: product.name,
                         image: product.image,
                         price: product.price,
+                        // --- ADDED LINES START ---
+                        discountPrice: product.discountPrice || 0,
+                        saleEndTime: product.saleEndTime || null,
+                        // --- ADDED LINES END ---
                         category: product.category,
                         addedAt: new Date(),
                     });
@@ -2224,17 +2252,20 @@
                 grid.innerHTML = ''; 
             }
             
-            // Map wishlist items to the format expected by renderProducts (product card)
+            // Map wishlist items to the format expected by renderProducts
             const wishlistProducts = itemsArray.map(item => ({
                 id: item.productId,
                 name: item.name,
                 image: item.image,
                 price: item.price,
+                // --- ADDED LINES START ---
+                discountPrice: item.discountPrice,
+                saleEndTime: item.saleEndTime,
+                // --- ADDED LINES END ---
                 category: item.category,
-                // Add default details for a proper card render, if missing in wishlist doc
                 tag: ['wishlist'], 
                 details: {},
-                stock: 1 // Assume stock > 0 for display, actual stock check is in cart/buy now
+                stock: 1 
             }));
             
             // Reuse the existing product rendering function
@@ -3537,6 +3568,18 @@ if (loggedInUser && loggedInUser.uid) {
             const clone = document.importNode(template.content, true);
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
+
+            // --- PASTE THIS CODE ---
+            document.getElementById('back-to-list-btn-detail').addEventListener('click', () => {
+                if (currentCategory) {
+                    showCategoryListing(currentCategory);
+                } else if (currentTag) {
+                    showProductListing(currentTag);
+                } else {
+                    renderHomeView();
+                }
+            });
+            // --- END CODE ---
             
             const detailWrapper = document.getElementById('detail-content-wrapper');
             detailWrapper.innerHTML = `
@@ -3953,19 +3996,6 @@ if (loggedInUser && loggedInUser.uid) {
                 startDetailCountdown(product, saleEndTime);
             }
 
-            document.getElementById('back-to-list-btn-detail').addEventListener('click', () => {
-                if (appState === 'detail') {
-                    if (currentCategory) {
-                        showCategoryListing(currentCategory);
-                    } else if (currentTag) {
-                        showProductListing(currentTag);
-                    } else {
-                        renderHomeView();
-                    }
-                } else {
-                     renderHomeView();
-                }
-            });
         }
 
 
