@@ -1749,6 +1749,8 @@
         let currentPage = 1; 
         let cartItems = {}; 
         let wishlistItems = {}; // ADDED: Wishlist State
+        let buyNowItem = null;
+        let isBuyNowFlow = false;
         
         const categoryItemsPerPage = 10; 
 
@@ -2575,6 +2577,13 @@
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
             
+            // --- NEW LOGIC ---
+            // Determine which items to show and the total
+            const itemsToCheckout = isBuyNowFlow ? buyNowItem : cartItems;
+            const total = Object.values(itemsToCheckout).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            // ... (auto-fill logic remains here) ...
+            
             const contactEmailInput = document.getElementById('contact-email');
             if (contactEmailInput && loggedInUser.email) {
                 contactEmailInput.value = loggedInUser.email;
@@ -2583,40 +2592,45 @@
             }
 
             // --- Auto-fill from Profile ---
-if (loggedInUser && loggedInUser.uid) {
-    try {
-        const userDocRef = doc(db, `artifacts/${appId}/users/${loggedInUser.uid}`);
-        getDoc(userDocRef).then((docSnap) => {
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                if(document.getElementById('shipping-first-name')) document.getElementById('shipping-first-name').value = data.firstName || '';
-                if(document.getElementById('shipping-last-name')) document.getElementById('shipping-last-name').value = data.lastName || '';
-                if(document.getElementById('shipping-address')) document.getElementById('shipping-address').value = data.address || '';
-                if(document.getElementById('shipping-city')) document.getElementById('shipping-city').value = data.city || '';
-                if(document.getElementById('shipping-postal-code')) document.getElementById('shipping-postal-code').value = data.postalCode || '';
-                if(document.getElementById('shipping-phone')) document.getElementById('shipping-phone').value = data.phone || '';
-                
-                // Trigger validation update after auto-fill
-                const form = document.getElementById('checkout-form');
-                if(form) form.dispatchEvent(new Event('input')); 
+            if (loggedInUser && loggedInUser.uid) {
+                try {
+                    const userDocRef = doc(db, `artifacts/${appId}/users/${loggedInUser.uid}`);
+                    getDoc(userDocRef).then((docSnap) => {
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if(document.getElementById('shipping-first-name')) document.getElementById('shipping-first-name').value = data.firstName || '';
+                            if(document.getElementById('shipping-last-name')) document.getElementById('shipping-last-name').value = data.lastName || '';
+                            if(document.getElementById('shipping-address')) document.getElementById('shipping-address').value = data.address || '';
+                            if(document.getElementById('shipping-city')) document.getElementById('shipping-city').value = data.city || '';
+                            if(document.getElementById('shipping-postal-code')) document.getElementById('shipping-postal-code').value = data.postalCode || '';
+                            if(document.getElementById('shipping-phone')) document.getElementById('shipping-phone').value = data.phone || '';
+                            
+                            // Trigger validation update after auto-fill
+                            const form = document.getElementById('checkout-form');
+                            if(form) form.dispatchEvent(new Event('input')); 
+                        }
+                    }).catch(err => console.log("Auto-fill error", err));
+                } catch (e) { console.log("Error getting user data", e); }
             }
-        }).catch(err => console.log("Auto-fill error", err));
-    } catch (e) { console.log("Error getting user data", e); }
-}
-// --- End Auto-fill ---
+            // --- End Auto-fill ---
             
-            const total = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
             document.getElementById('checkout-buy-now-btn').textContent = `Place Order (${CURRENCY_SYMBOL}${total.toFixed(2)})`;
 
-            renderCheckoutSummary(cartItems);
-            listenToCart(); 
+            renderCheckoutSummary(itemsToCheckout); // Pass the correct item list
+            
+            // Only listen to the main cart if we are NOT in a Buy Now flow
+            if (!isBuyNowFlow) {
+                listenToCart(); 
+            }
 
             document.getElementById('return-to-cart-link').addEventListener('click', (e) => {
                 e.preventDefault();
+                isBuyNowFlow = false; // <-- ADD THIS LINE
+                buyNowItem = null; // <-- ADD THIS LINE
                 renderCartView(true); 
             });
 
-            setupCheckoutFormListeners(total);
+            setupCheckoutFormListeners(total); // Pass the correct total
         }
 
         /**
@@ -2781,6 +2795,7 @@ if (loggedInUser && loggedInUser.uid) {
             updateBuyNowButtonState();
 
             // --- Form Submission (Final Step with Supabase Upload) ---
+            // --- Form Submission (Final Step with Supabase Upload) ---
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 
@@ -2794,12 +2809,14 @@ if (loggedInUser && loggedInUser.uid) {
                     buyNowBtn.disabled = false;
                     return;
                 }
-                
-                const finalOrderTotal = Object.values(cartItems).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                const cartItemsArray = Object.values(cartItems);
 
-                if (cartItemsArray.length === 0 || finalOrderTotal === 0) {
-                     showModal("Cart Empty", "Your cart is empty. Please add items before placing an order.");
+                // --- NEW LOGIC: Determine which items to process ---
+                const itemsToProcess = isBuyNowFlow ? buyNowItem : cartItems;
+                const finalOrderTotal = Object.values(itemsToProcess).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const itemsArray = Object.values(itemsToProcess);
+
+                if (itemsArray.length === 0 || finalOrderTotal === 0) {
+                     showModal("No Items", "There are no items to check out.");
                      return;
                 }
 
@@ -2858,7 +2875,7 @@ if (loggedInUser && loggedInUser.uid) {
                     await runTransaction(db, async (transaction) => {
                         const productUpdates = [];
                         
-                        for (const item of cartItemsArray) {
+                        for (const item of itemsArray) { // <-- USES itemsArray
                             const productRef = doc(db, PRODUCTS_COLLECTION_PATH, item.productId);
                             const productSnap = await transaction.get(productRef);
                             
@@ -2892,7 +2909,7 @@ if (loggedInUser && loggedInUser.uid) {
                         buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Placing Order...';
                         const orderData = {
                             userId: loggedInUser.uid,
-                            items: cartItemsArray.map(item => ({...item, addedAt: null})), 
+                            items: itemsArray.map(item => ({...item, addedAt: null})), // <-- USES itemsArray
                             total: finalOrderTotal,
                             contact: form.elements['contact-email'].value,
                             shipping: {
@@ -2913,16 +2930,21 @@ if (loggedInUser && loggedInUser.uid) {
                         transaction.set(newOrderRef, orderData); 
                     });
                     
-                    // 4. Clear the cart AFTER successful transaction
-                    buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Clearing Cart...';
-                    const cartRefs = await getDocs(collection(db, CART_COLLECTION_PATH(loggedInUser.uid)));
-                    const deletePromises = [];
-                    cartRefs.forEach(doc => {
-                        deletePromises.push(deleteDoc(doc.ref));
-                    });
-                    await Promise.all(deletePromises);
+                    // 4. Clear the cart ONLY IF it was NOT a Buy Now flow
+                    if (!isBuyNowFlow) {
+                        buyNowBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin mr-2"></i> Clearing Cart...';
+                        const cartRefs = await getDocs(collection(db, CART_COLLECTION_PATH(loggedInUser.uid)));
+                        const deletePromises = [];
+                        cartRefs.forEach(doc => {
+                            deletePromises.push(deleteDoc(doc.ref));
+                        });
+                        await Promise.all(deletePromises);
+                    }
                     
-                    // 5. Success message and redirect
+                    // 5. Success message and redirect (and clear Buy Now state)
+                    isBuyNowFlow = false; // <-- NEW: Reset state
+                    buyNowItem = null; // <-- NEW: Reset state
+                    
                     showModal("Order Placed!", `Your order #${newOrderRef.id.substring(0, 8).toUpperCase()} has been placed and is now **Pending Verification**. Please wait for confirmation.`);
                     renderHomeView(); 
 
@@ -3768,9 +3790,6 @@ if (loggedInUser && loggedInUser.uid) {
         /**
          * Renders the final product detail page content.
          */
-        /**
-         * Renders the final product detail page content.
-         */
         function renderDetailPage(product) {
             const details = product.details || {};
             const detailWrapper = document.getElementById('detail-content-wrapper');
@@ -3941,6 +3960,9 @@ if (loggedInUser && loggedInUser.uid) {
 
             document.getElementById('add-to-cart-btn').addEventListener('click', async (e) => {
                 if (isOutOfStock) return; 
+
+                isBuyNowFlow = false;
+                buyNowItem = null;
                 
                 const productId = e.currentTarget.getAttribute('data-product-id');
                 const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
@@ -3956,12 +3978,38 @@ if (loggedInUser && loggedInUser.uid) {
             document.getElementById('buy-now-btn').addEventListener('click', async (e) => {
                 if (isOutOfStock) return;
                 
+                // 1. CHECK FOR LOGIN
+                if (!loggedInUser || !loggedInUser.email) {
+                    showModal("Login Required", "Please log in or sign up to buy this item.");
+                    showAuthModal('login'); 
+                    return;
+                }
+                
                 const productId = e.currentTarget.getAttribute('data-product-id');
                 const productRef = doc(db, PRODUCTS_COLLECTION_PATH, productId);
                 const productSnap = await getDoc(productRef);
                 
                 if (productSnap.exists()) {
-                    await updateCart({ id: productSnap.id, ...productSnap.data() }, 1, false, false);
+                    const productData = { id: productSnap.id, ...productSnap.data() };
+                    
+                    // 2. Get the effective price
+                    const effectivePrice = getEffectivePrice(productData);
+                    
+                    // 3. Set the global "Buy Now" item
+                    // We structure it like a cart item for the summary function
+                    buyNowItem = {
+                        [productId]: {
+                            productId: productData.id,
+                            name: productData.name,
+                            image: productData.image,
+                            price: effectivePrice, 
+                            quantity: 1, // Buy Now is always quantity 1
+                            stock: productData.stock // Need this for transaction check
+                        }
+                    };
+                    isBuyNowFlow = true; // Set the flag
+                    
+                    // 4. Go to checkout
                     clearListeners();
                     showCheckoutView(); 
 
