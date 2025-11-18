@@ -1742,6 +1742,7 @@
 
         // --- Global State and DOM Elements ---
         let app, auth, db; 
+        let globalSearchCache = [];
         let userId = ''; 
         let loggedInUser = null; 
         let appState = 'home'; 
@@ -4575,17 +4576,23 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
                     }
 
                     // --- Search Logic (Runs regardless of auth state) ---
-                    let globalSearchCache = [];
                     async function cacheProductsForSearch() {
                         try {
                             const q = query(collection(db, PRODUCTS_COLLECTION_PATH));
                             const snapshot = await getDocs(q);
-                            globalSearchCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                            const products = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                            globalSearchCache.length = 0;
+                            globalSearchCache.push(...products);
+
+                            console.log("Search Cache Updated:", globalSearchCache.length, "products");
                         } catch (error) {
                             console.error("Error caching products for search:", error);
                         }
                     }
+                    
                     if(globalSearchCache.length === 0) cacheProductsForSearch();
+                    setupSearchListeners();
 
                     // ... (Search Event Listeners remain the same) ...
                     // Re-attach search listeners here to ensure they work after auth state changes
@@ -4602,21 +4609,112 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
             }
         }
 
-        // Helper to keep the main function clean
-        function setupSearchListeners(globalSearchCache) {
-             const desktopInput = document.getElementById('desktop-search-input');
-             const mobileInput = document.getElementById('mobile-search-input');
-             
-             // Define handleLiveInput and renderDropdownResults here or ensure they are available in scope
-             // (You can keep your existing search logic functions outside if they are global, 
-             // or paste the search logic block back in here if preferred)
-             
-             // For simplicity, based on your previous code, the search logic was inside onAuthStateChanged.
-             // Ensure the search input listeners are attached.
-             
-             // ... [Paste your existing Search Logic/Listeners here if they were deleted] ...
-             // Since your previous code had them inside onAuthStateChanged, they will work fine 
-             // if you just keep the search logic block inside the listener as it was.
+       // Helper to keep the main function clean
+        function setupSearchListeners() {
+            const desktopForm = document.getElementById('desktop-search-form');
+            const desktopInput = document.getElementById('desktop-search-input');
+            const desktopResults = document.getElementById('desktop-search-results');
+
+            const mobileForm = document.getElementById('mobile-search-form');
+            const mobileInput = document.getElementById('mobile-search-input');
+            const mobileResults = document.getElementById('mobile-search-results');
+
+            // --- The Live Search Logic ---
+            const performSearch = (inputElement, resultsContainer) => {
+                const queryStr = inputElement.value.toLowerCase().trim();
+
+                // 1. Clear results if input is empty
+                if (queryStr.length === 0) {
+                    resultsContainer.classList.add('hidden');
+                    resultsContainer.innerHTML = '';
+                    return;
+                }
+
+                // 2. Filter the cached products
+                const filteredProducts = globalSearchCache.filter(product => {
+                    const name = (product.name || '').toLowerCase();
+                    const category = (product.category || '').toLowerCase();
+                    const tags = Array.isArray(product.tag) ? product.tag.join(' ').toLowerCase() : '';
+                    
+                    return name.includes(queryStr) || category.includes(queryStr) || tags.includes(queryStr);
+                });
+
+                // 3. Render Results
+                resultsContainer.innerHTML = '';
+                
+                if (filteredProducts.length === 0) {
+                    resultsContainer.innerHTML = `
+                        <div class="p-4 text-sm text-gray-500 text-center">No products found.</div>
+                    `;
+                } else {
+                    // Limit to top 6 results to fit in dropdown
+                    filteredProducts.slice(0, 6).forEach(product => {
+                        const div = document.createElement('div');
+                        div.className = 'flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 dark:hover:bg-gray-700 dark:border-gray-700 transition-colors';
+                        
+                        // Create HTML for the row
+                        div.innerHTML = `
+                            <img src="${product.image || 'https://placehold.co/40x40'}" class="w-10 h-10 object-cover rounded-md mr-3 flex-shrink-0">
+                            <div class="min-w-0">
+                                <p class="text-sm font-medium text-gray-800 dark:text-white truncate">${product.name}</p>
+                                <p class="text-xs text-orange-600 font-semibold">Rs.${(product.price || 0).toLocaleString()}</p>
+                            </div>
+                        `;
+
+                        // Click Handler
+                        div.addEventListener('click', (e) => {
+                            e.stopPropagation(); // Prevent document click from closing immediately
+                            showProductDetail(product.id);
+                            inputElement.value = ''; // Clear input
+                            resultsContainer.classList.add('hidden');
+                        });
+
+                        resultsContainer.appendChild(div);
+                    });
+                }
+
+                // Show the container
+                resultsContainer.classList.remove('hidden');
+            };
+
+            // --- Attach Listeners for Desktop ---
+            if (desktopInput && desktopResults) {
+                desktopInput.addEventListener('input', () => performSearch(desktopInput, desktopResults));
+                
+                // Focus event: show results again if text exists
+                desktopInput.addEventListener('focus', () => {
+                    if(desktopInput.value.trim().length > 0) desktopResults.classList.remove('hidden');
+                });
+
+                // Prevent form submit from reloading page
+                desktopForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    // Optional: You could implement a full search results page here
+                    desktopResults.classList.add('hidden');
+                });
+            }
+
+            // --- Attach Listeners for Mobile ---
+            if (mobileInput && mobileResults) {
+                mobileInput.addEventListener('input', () => performSearch(mobileInput, mobileResults));
+                
+                mobileForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    mobileResults.classList.add('hidden');
+                });
+            }
+
+            // --- Global Click Listener (To close dropdown when clicking outside) ---
+            document.addEventListener('click', (e) => {
+                // Close Desktop if clicked outside
+                if (desktopForm && !desktopForm.contains(e.target)) {
+                    desktopResults?.classList.add('hidden');
+                }
+                // Close Mobile if clicked outside
+                if (mobileForm && !mobileForm.contains(e.target)) {
+                    mobileResults?.classList.add('hidden');
+                }
+            });
         }
 
         function setupAuthUIListeners() {
