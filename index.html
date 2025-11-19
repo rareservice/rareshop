@@ -4532,6 +4532,7 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
                 // 4. Listen for Auth State Changes
                 // We moved the "Anonymous Login" logic INSIDE here.
                 onAuthStateChanged(auth, async (user) => {
+                    window.isUserAuthenticated = user && !user.isAnonymous;
                     if (user) {
                         // --- USER FOUND (Restored Session or Just Logged In) ---
                         loggedInUser = user;
@@ -4816,10 +4817,100 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
             renderHomeView(); // Load the homepage
         });
 
+        // --- Listen for Cookie Consent to Save to DB ---
+        window.addEventListener('rareShop_cookie_accepted', async () => {
+            if (auth && auth.currentUser) {
+                // If user is logged in, save 'cookieConsent: true' to their profile
+                try {
+                    const userRef = doc(db, `artifacts/${appId}/users/${auth.currentUser.uid}`);
+                    await setDoc(userRef, {
+                        cookieConsent: true,
+                        cookieConsentDate: new Date()
+                    }, { merge: true });
+                    console.log("Cookie consent saved to Firestore for user:", auth.currentUser.uid);
+                } catch (error) {
+                    console.error("Error saving cookie consent:", error);
+                }
+            } else {
+                console.log("User accepted cookies, but is not logged in. Saved to browser only.");
+            }
+        });
+
+        window.addEventListener('require_login_for_cookies', () => {
+            showModal("Login Required", "Please login first, then click on Accept.");
+            showAuthModal('login');
+            });
+
         // --- Run the App ---
         initializeAppAndAuth();
 
     </script>
+    <div id="cookie-banner" class="fixed bottom-0 left-0 w-full bg-gray-900 text-white p-4 shadow-lg transform translate-y-full transition-transform duration-500 z-[60] flex flex-col sm:flex-row justify-between items-center gap-4 hidden">
+    <div class="text-sm text-gray-300">
+        <p>
+            <i class="ph ph-cookie text-xl text-orange-500 align-middle mr-1"></i>
+            We use cookies to improve your experience. By using our site, you agree to our 
+            <a href="#" id="cookie-tos-link" class="underline hover:text-orange-500">Terms of Service</a>.
+        </p>
+    </div>
+    <div class="flex gap-3">
+        <button id="cookie-decline-btn" class="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white transition-colors">
+            Decline
+        </button>
+        <button id="cookie-accept-btn" class="px-6 py-2 text-sm font-bold bg-orange-600 text-white rounded-lg hover:bg-orange-700 shadow-md transition-all">
+            Accept
+        </button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const cookieBanner = document.getElementById('cookie-banner');
+        const acceptBtn = document.getElementById('cookie-accept-btn');
+        const declineBtn = document.getElementById('cookie-decline-btn');
+        const tosLink = document.getElementById('cookie-tos-link');
+
+        const cookiesAccepted = localStorage.getItem('rareShop_cookie_consent');
+
+        if (!cookiesAccepted) {
+            cookieBanner.classList.remove('hidden');
+            setTimeout(() => { cookieBanner.classList.remove('translate-y-full'); }, 1000);
+        }
+
+        if (acceptBtn) {
+            acceptBtn.addEventListener('click', () => {
+                // 1. CHECK: Is the user logged in?
+                if (!window.isUserAuthenticated) {
+                    // If NOT logged in, trigger the Main App to show the Login Modal
+                    window.dispatchEvent(new CustomEvent('require_login_for_cookies'));
+                    return; // STOP HERE. Do not accept cookies yet.
+                }
+
+                // 2. If Logged in, Proceed to Save
+                localStorage.setItem('rareShop_cookie_consent', 'true');
+                
+                cookieBanner.classList.add('translate-y-full');
+                setTimeout(() => { cookieBanner.classList.add('hidden'); }, 500);
+
+                window.dispatchEvent(new CustomEvent('rareShop_cookie_accepted'));
+            });
+        }
+
+        if (declineBtn) {
+            declineBtn.addEventListener('click', () => {
+                cookieBanner.classList.add('translate-y-full');
+                setTimeout(() => { cookieBanner.classList.add('hidden'); }, 500);
+            });
+        }
+
+        if (tosLink) {
+            tosLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                const footerTosBtn = document.getElementById('footer-tos-link');
+                if (footerTosBtn) footerTosBtn.click();
+            });
+        }
+    });
+</script>
 </body>
 </html>
-
