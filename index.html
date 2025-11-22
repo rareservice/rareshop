@@ -4924,7 +4924,42 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
             showAuthModal('login');
             });
 
-        // --- Run the App ---
+        // --- ROUTING LOGIC START ---
+
+        // 1. Helper to change URL without reloading
+        function updateRoute(path) {
+            if (window.location.pathname !== path) {
+                window.history.pushState({}, '', path);
+            }
+        }
+
+        // 2. Handle Browser "Back" Button
+        window.addEventListener('popstate', () => {
+            const path = window.location.pathname;
+            
+            if (path.includes('/about-us')) renderAboutView();
+            else if (path.includes('/faqs')) renderFaqView();
+            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
+            else if (path.includes('/return-policy')) renderReturnPolicyView();
+            else if (path.includes('/terms-of-service')) renderTosView();
+            else if (path.includes('/shop')) showProductListing('featured');
+            else renderHomeView(); 
+        });
+
+        // 3. Check URL on Initial Load (prevents going to Home if user wants About Us)
+        // We run this after a short delay to ensure Firebase Auth has settled
+        setTimeout(() => {
+            const path = window.location.pathname;
+            if (path.includes('/about-us')) renderAboutView();
+            else if (path.includes('/faqs')) renderFaqView();
+            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
+            else if (path.includes('/return-policy')) renderReturnPolicyView();
+            else if (path.includes('/terms-of-service')) renderTosView();
+        }, 500);
+
+    // --- ROUTING LOGIC END ---
+        
+            // --- Run the App ---
         initializeAppAndAuth();
 
     </script>
@@ -4994,41 +5029,6 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
             });
         }
     });
-
-    // --- ROUTING LOGIC START ---
-
-        // 1. Helper to change URL without reloading
-        function updateRoute(path) {
-            if (window.location.pathname !== path) {
-                window.history.pushState({}, '', path);
-            }
-        }
-
-        // 2. Handle Browser "Back" Button
-        window.addEventListener('popstate', () => {
-            const path = window.location.pathname;
-            
-            if (path.includes('/about-us')) renderAboutView();
-            else if (path.includes('/faqs')) renderFaqView();
-            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
-            else if (path.includes('/return-policy')) renderReturnPolicyView();
-            else if (path.includes('/terms-of-service')) renderTosView();
-            else if (path.includes('/shop')) showProductListing('featured');
-            else renderHomeView(); 
-        });
-
-        // 3. Check URL on Initial Load (prevents going to Home if user wants About Us)
-        // We run this after a short delay to ensure Firebase Auth has settled
-        setTimeout(() => {
-            const path = window.location.pathname;
-            if (path.includes('/about-us')) renderAboutView();
-            else if (path.includes('/faqs')) renderFaqView();
-            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
-            else if (path.includes('/return-policy')) renderReturnPolicyView();
-            else if (path.includes('/terms-of-service')) renderTosView();
-        }, 500);
-
-        // --- ROUTING LOGIC END ---
 
 </script>
 </body>
