@@ -3228,18 +3228,17 @@
          * Renders the home view.
          */
         function renderHomeView() {
-            resetBodyScroll(); // Re-enable scroll when changing views
+            resetBodyScroll();
             clearListeners(); 
             appState = 'home';
+            updateRoute('/'); // <--- Updates URL to root
+            
             currentTag = '';
             currentCategory = '';
             currentPage = 1;
 
             const template = document.getElementById('home-view-template');
-            if (!template) {
-                console.error("Home view template not found!");
-                return;
-            }
+            if (!template) return;
             const clone = document.importNode(template.content, true);
             mainContentContainer.innerHTML = '';
             mainContentContainer.appendChild(clone);
@@ -3267,9 +3266,7 @@
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const tag = link.getAttribute('data-tag');
-                    if (tag) {
-                        showProductListing(tag); 
-                    }
+                    if (tag) showProductListing(tag); 
                 });
             });
 
@@ -3277,17 +3274,103 @@
                 link.addEventListener('click', (e) => {
                     e.preventDefault();
                     const category = link.getAttribute('data-category');
-                    if (category) {
-                        showCategoryListing(category); 
-                    }
+                    if (category) showCategoryListing(category); 
                 });
             });
             
-            // Start listening to cart and wishlist
             if (loggedInUser && loggedInUser.uid) {
                 listenToCart();
                 listenToWishlist();
             }
+        }
+
+        function renderFaqView() {
+            resetBodyScroll();
+            clearListeners();
+            appState = 'faq';
+            updateRoute('/faqs'); // <--- Updates URL
+            
+            const template = document.getElementById('faq-view-template');
+            if (!template) return;
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            document.getElementById('back-to-home-btn-faq').addEventListener('click', renderHomeView);
+            
+            document.querySelectorAll('.faq-question').forEach(button => {
+                button.addEventListener('click', () => {
+                    const answer = button.nextElementSibling;
+                    const plusIcon = button.querySelector('.ph-plus');
+                    const minusIcon = button.querySelector('.ph-minus');
+
+                    const isHidden = answer.classList.contains('hidden');
+                    answer.classList.toggle('hidden');
+                    
+                    plusIcon.classList.toggle('hidden', isHidden);
+                    minusIcon.classList.toggle('hidden', !isHidden);
+                });
+            });
+        }
+
+        function renderShippingPolicyView() {
+            resetBodyScroll();
+            clearListeners();
+            appState = 'shipping';
+            updateRoute('/shipping-policy'); // <--- Updates URL
+            
+            const template = document.getElementById('shipping-policy-view-template');
+            if (!template) return;
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            document.getElementById('back-to-home-btn-shipping').addEventListener('click', renderHomeView);
+        }
+
+        function renderReturnPolicyView() {
+            resetBodyScroll();
+            clearListeners();
+            appState = 'return';
+            updateRoute('/return-policy'); // <--- Updates URL
+            
+            const template = document.getElementById('return-policy-view-template');
+            if (!template) return;
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            document.getElementById('back-to-home-btn-return').addEventListener('click', renderHomeView);
+        }
+
+        function renderTosView() {
+            resetBodyScroll();
+            clearListeners();
+            appState = 'tos';
+            updateRoute('/terms-of-service'); // <--- Updates URL
+            
+            const template = document.getElementById('tos-view-template');
+            if (!template) return;
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            document.getElementById('back-to-home-btn-tos').addEventListener('click', renderHomeView);
+        }
+
+        function renderAboutView() {
+            resetBodyScroll();
+            clearListeners();
+            appState = 'about';
+            updateRoute('/about-us'); // <--- Updates URL
+            
+            const template = document.getElementById('about-view-template');
+            if (!template) return;
+            const clone = document.importNode(template.content, true);
+            mainContentContainer.innerHTML = '';
+            mainContentContainer.appendChild(clone);
+            
+            document.getElementById('back-to-home-btn-about').addEventListener('click', renderHomeView);
         }
         
         /**
@@ -4911,6 +4994,42 @@ document.getElementById('sidebar-profile-link')?.addEventListener('click', (e) =
             });
         }
     });
+
+    // --- ROUTING LOGIC START ---
+
+        // 1. Helper to change URL without reloading
+        function updateRoute(path) {
+            if (window.location.pathname !== path) {
+                window.history.pushState({}, '', path);
+            }
+        }
+
+        // 2. Handle Browser "Back" Button
+        window.addEventListener('popstate', () => {
+            const path = window.location.pathname;
+            
+            if (path.includes('/about-us')) renderAboutView();
+            else if (path.includes('/faqs')) renderFaqView();
+            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
+            else if (path.includes('/return-policy')) renderReturnPolicyView();
+            else if (path.includes('/terms-of-service')) renderTosView();
+            else if (path.includes('/shop')) showProductListing('featured');
+            else renderHomeView(); 
+        });
+
+        // 3. Check URL on Initial Load (prevents going to Home if user wants About Us)
+        // We run this after a short delay to ensure Firebase Auth has settled
+        setTimeout(() => {
+            const path = window.location.pathname;
+            if (path.includes('/about-us')) renderAboutView();
+            else if (path.includes('/faqs')) renderFaqView();
+            else if (path.includes('/shipping-policy')) renderShippingPolicyView();
+            else if (path.includes('/return-policy')) renderReturnPolicyView();
+            else if (path.includes('/terms-of-service')) renderTosView();
+        }, 500);
+
+        // --- ROUTING LOGIC END ---
+
 </script>
 </body>
 </html>
